@@ -1,1 +1,1 @@
-![an example](./example/perlin.png)
+![an example](./examples/perlin.png)
