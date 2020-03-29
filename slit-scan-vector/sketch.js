@@ -1,6 +1,8 @@
 'use strict'
 
-_ = require('lodash')
+const DEBUG = true
+
+const _l = _.noConflict()
 
 // Ensure the .ttf or .otf font stored in the assets directory
 // is loaded before setup() and draw() are called.
@@ -69,7 +71,7 @@ const setupCharacterBoundaries = () => {
 
 // Reset the points for another round of slit-scanning!
 const resetSlitScan = () => {
-  pointsShifted = _.cloneDeep(points)
+  pointsShifted = _l.cloneDeep(points)
   for (const p of pointsShifted) {
     p.shiftX = undefined
     p.shiftY = undefined
@@ -143,7 +145,7 @@ function draw() {
   beginShape()
 
   // Move the drawing into our draw boundaries.
-  translate(-xToCanvas(bounds.x), -yToCanvas(bounds))
+  translate(-xToCanvas(bounds.x), -yToCanvas(bounds.y))
 
   // Draw the text
   pointsShifted.forEach((p, i) => {
