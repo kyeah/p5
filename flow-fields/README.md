@@ -1,1 +1,6 @@
 ![an example](./examples/perlin.png)
+![an example](./examples/perlin-color-1.png)
+![an example](./examples/perlin-color-2.png)
+![an example](./examples/perlin-color-3.png)
+![an example](./examples/perlin-color-5-sparse.png)
+![an example](./examples/perlin-color-4.png)
