@@ -50,16 +50,34 @@ function setup() {
   noLoop()
 }
 
+const pickHex = (arr) => {
+  const idx = random(0, arr.length)
+  return `#${arr.splice(idx, 1)}`
+}
+
 function draw() {
-  colorMode(HSB, 360)
-  background(360, 0, height)
+  noFill()
+  strokeWeight(2)
 
-  drawGrid()
+  const scheme = new ColorScheme
+  scheme.from_hue(21)
+        .scheme('triade')
+        .variation('soft')
 
-  for (let i = 0; i < 1000; i++) {
-    const x = random(leftX, rightX)
-    const y = random(topY, bottomY)
-    drawCurve(x, y, 200, width * 0.005)
+  const colors = scheme.colors()
+
+  background(pickHex(colors))
+
+  for (let a = 0; a < 4; a++) {
+    const colorIdx = random(0, colors.length)
+    const color = colors.splice(colorIdx, 1)
+    stroke(pickHex(colors))
+    
+    for (let i = 0; i < 3000; i++) {
+      const x = random(leftX, rightX)
+      const y = random(topY, bottomY)
+      drawCurve(x, y, 50, width * 0.005)
+    }
   }
 }
 
@@ -79,8 +97,6 @@ const drawGrid = () => {
 
 // Draw a curve starting at (x, y)
 const drawCurve = (x, y, numSteps, stepLength) => {
-  noFill()
-  strokeWeight(2)
   beginShape()
 
   for (let step = 0; step < numSteps; step++) {
