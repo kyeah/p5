@@ -1,6 +1,9 @@
 'use strict'
 
-const DEBUG = true
+const DEBUG = false
+
+// Modes: MOUSE, SINE
+const mode = 'MOUSE'
 
 const _l = _.noConflict()
 
@@ -39,11 +42,14 @@ let y
 const yMin = -100
 const yMax = 100
 
-// We don't actually want the text height to fit the full boundary,
-// so specify how much room we're providing for slit-scanning.
-//
-// e.g. 1/8 means that the base text should fill 1/8 of the full height.
-const heightScale = 1 / 8
+// The preferred text boundaries at the start are 800x100.
+// 
+// We don't actually want the canvas to be that tight,
+// so specify how much extra room we're providing for slit-scanning.
+const width = 1000
+const height = 800
+const widthScale = 1 / (width / 800)
+const heightScale = 1 / (height / 100)
 
 // This is it! Our text!
 const text = 'GENERATIVE'
@@ -82,13 +88,10 @@ const resetSlitScan = () => {
 
 // Scale a text point to the canvas size
 const xToCanvas = (x) => {
-  return x * width / bounds.w
+  return x * width * widthScale / bounds.w
 }
 
 // Scale a text point to the canvas size.
-//
-// Note that we use heightScale so it only
-// covers a portion of the full canvas height.
 const yToCanvas = (y) => {
   return y * height * heightScale / bounds.h
 }
@@ -106,18 +109,15 @@ const debugRed = (p) => {
   }
 }
 
-// Draw a totally inaccurate visual
-// representation of our scan line.
-const drawScanLine = () => {
+// Draw the scan line.
+const drawScanLine = (yShift) => {
   stroke(255, 0, 0)
-  line(0, y, width, y)
-  line(0, 100, width, 100)
-  ellipse(0, y, 20)
+  line(0, y + yShift, width, y + yShift)
   noStroke()
 }
 
 function setup() {
-  createCanvas(800, 800)
+  createCanvas(width, height)
 
   points = font.textToPoints(text, 0, 0, 32, {
     sampleFactor: 5,
@@ -139,7 +139,8 @@ function setup() {
 function draw() {
   // White background and stroke, black fill.
   background(255)
-  stroke(255, 255, 255)
+  noStroke()
+  //  stroke(255, 255, 255)
   fill(0, 0, 0)
 
   beginShape()
@@ -147,6 +148,19 @@ function draw() {
   // Move the drawing into our draw boundaries.
   translate(-xToCanvas(bounds.x), -yToCanvas(bounds.y))
 
+  // Slit line attributes for sine mode
+  const amplitude = 15
+  const period = 30
+
+  let shiftY
+  if (mode === 'SINE') {
+    shiftY = 15 * ((y - yMin) / period)
+  } else if (mode === 'MOUSE') {
+    shiftY = mouseY
+  }
+
+  let hasNonShifted = false
+  
   // Draw the text
   pointsShifted.forEach((p, i) => {
     // If we've reached a character
@@ -161,9 +175,16 @@ function draw() {
     }
 
     // Add shift if the scanline has crossed the point.
+    const rotate = false
     if (!p.shift && yToCanvas(p.y) > y) {
-      p.shiftX = mouseX
-      p.shiftY = mouseY
+      hasNonShifted = true
+      if (mode === 'SINE') {
+        p.shiftX = amplitude * sin(Math.PI * ((y - yMin) / period))
+      } else {
+        p.shiftX = mouseX
+      }
+
+      p.shiftY = shiftY
     }
 
     vertex(
@@ -173,10 +194,10 @@ function draw() {
   })
 
   endShape()
-  drawScanLine()
+  drawScanLine(shiftY)
 
   y += 1
-  if (y > yMax) {
+  if (y > yMax || !hasNonShifted) {
     resetSlitScan()
   }
 }
