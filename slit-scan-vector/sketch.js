@@ -17,7 +17,7 @@ const _l = _.noConflict()
 //       for more guidance: https://github.com/processing/p5.js/wiki/Local-server
 let font;
 function preload() {
-  font = loadFont('<INSERT YOUR FONT HERE>')
+  font = loadFont('assets/KevinTestFont-Regular.otf')
 }
 
 // The raw points that will represent our text when initialized.
@@ -41,6 +41,11 @@ let y
 
 const yMin = -100
 const yMax = 100
+
+// A counter to stall reset after the entire text has been slit-scanned.
+// This lets us appreciate our work for a bit.
+let stallResetCounter = 0
+const stallResetTime = 50
 
 // The preferred text boundaries at the start are 800x100.
 // 
@@ -84,6 +89,7 @@ const resetSlitScan = () => {
   }
 
   y = yMin
+  stallResetCounter = 0
 }
 
 // Scale a text point to the canvas size
@@ -159,7 +165,7 @@ function draw() {
     shiftY = mouseY
   }
 
-  let hasNonShifted = false
+  let hasNotShifted = true
   
   // Draw the text
   pointsShifted.forEach((p, i) => {
@@ -177,7 +183,7 @@ function draw() {
     // Add shift if the scanline has crossed the point.
     const rotate = false
     if (!p.shift && yToCanvas(p.y) > y) {
-      hasNonShifted = true
+      hasNotShifted = false
       if (mode === 'SINE') {
         p.shiftX = amplitude * sin(Math.PI * ((y - yMin) / period))
       } else {
@@ -194,10 +200,16 @@ function draw() {
   })
 
   endShape()
-  drawScanLine(shiftY)
 
   y += 1
-  if (y > yMax || !hasNonShifted) {
+
+  if (hasNotShifted) {
+    stallResetCounter += 1
+  } else {
+    drawScanLine(shiftY)
+  }
+
+  if (y > yMax || stallResetCounter > stallResetTime) {
     resetSlitScan()
   }
 }
