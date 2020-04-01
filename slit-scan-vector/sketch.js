@@ -3,7 +3,7 @@
 const DEBUG = false
 
 // Modes: MOUSE, SINE
-const mode = 'MOUSE'
+const mode = 'SINE'
 
 const _l = _.noConflict()
 
@@ -181,9 +181,9 @@ function draw() {
     }
 
     // Add shift if the scanline has crossed the point.
-    const rotate = false
-    if (!p.shift && yToCanvas(p.y) > y) {
-      hasNotShifted = false
+    if (!p.shiftY && yToCanvas(p.y) < y) {
+      ellipse(0, yToCanvas(p.y), 20)
+
       if (mode === 'SINE') {
         p.shiftX = amplitude * sin(Math.PI * ((y - yMin) / period))
       } else {
@@ -203,13 +203,13 @@ function draw() {
 
   y += 1
 
-  if (hasNotShifted) {
+  if (!hasNotShifted) {
     stallResetCounter += 1
   } else {
     drawScanLine(shiftY)
   }
 
-  if (y > yMax || stallResetCounter > stallResetTime) {
+  if (y > yMax ) {//|| stallResetCounter > stallResetTime) {
     resetSlitScan()
   }
 }
