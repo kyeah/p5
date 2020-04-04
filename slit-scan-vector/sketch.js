@@ -41,7 +41,7 @@ let bounds
 let y
 let progress
 
-const yMin = -100
+const yMin = 200
 const yMax = 100
 
 // A counter to stall reset after the entire text has been slit-scanned.
@@ -91,7 +91,7 @@ const resetSlitScan = () => {
     p.shiftY = undefined
   }
 
-  y = yMin
+  y = 0
   progress = 0
   stallResetCounter = 0
 }
@@ -122,7 +122,7 @@ const debugRed = (p) => {
 // Draw the scan line.
 const drawScanLine = (yShift) => {
   stroke(255, 0, 0)
-  line(0, y + yShift, width, y + yShift)
+  line(0, y, width, y)
   noStroke()
 }
 
@@ -194,7 +194,7 @@ function draw() {
 
     // Add shift if the scanline has crossed the point.
     const rotate = false
-    if (!p.shift && yToCanvas(p.y) > y) {
+    if (!p.shiftX && yToCanvas(p.y) - progress > y) {
       hasNotShifted = false
       if (mode === 'SINE') {
         p.shiftX = amplitude * sin(Math.PI * ((y - yMin) / period))
@@ -213,7 +213,7 @@ function draw() {
 
   endShape()
 
-  y += speed
+  // y += speed
   progress -= speed * 4
 
   if (hasNotShifted) {
@@ -224,7 +224,7 @@ function draw() {
 
   drawBounds()
 
-  if (y > yMax || stallResetCounter > stallResetTime) {
-    resetSlitScan()
-  }
+  //if (y > yMax || stallResetCounter > stallResetTime) {
+  //  resetSlitScan()
+  //}
 }
