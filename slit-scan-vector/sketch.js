@@ -50,6 +50,7 @@ class Text {
     // A counter to stall reset after the entire text has been slit-scanned.
     // This lets us appreciate our work for a bit.
     this.stallResetCounter = -40
+    this.minY
   }
 
   // Reset the points for another round of slit-scanning!
@@ -108,7 +109,7 @@ class Text {
     }
 
     let hasNotShifted = true
-    let minY
+    this.minY = undefined
   
     // Draw the text
     this.pointsShifted.forEach((p, i) => {
@@ -136,10 +137,10 @@ class Text {
       }
 
       const newY = this.yToCanvas(p.y) + (p.shiftY || 0) + (this.progress)
-      if (!minY) {
-        minY = newY
+      if (!this.minY) {
+        this.minY = newY
       } else {
-        minY = Math.min(minY, newY)
+        this.minY = Math.min(this.minY, newY)
       }
 
       vertex(
@@ -149,29 +150,7 @@ class Text {
     })
 
     endShape()
-
-    if (hasNotShifted) {
-      if (this.stallResetCounter < 0) {
-        this.progress += speed
-        this.stallResetCounter += 1
-      } else {
-        this.stallResetCounter += 3.5
-        const shift = Math.PI / 2
-        const max = Math.max(0.2, abs(sin(shift + (Math.PI * (this.stallResetCounter / 200)))))
-        if (this.stallResetCounter > 200) {
-          this.progress += speed
-        } else {
-          this.progress += speed * max
-        }
-      }
-    } else {
-      this.stallResetCounter = 0
-      this.progress += speed
-    }
-
-    if (minY > 400) {
-      this.resetSlitScan()
-    }    
+    return hasNotShifted
   }
 }
 
@@ -264,6 +243,7 @@ function setup() {
   }
 }
 
+let stallResetCounter = 0
 function draw() {
   // White background and stroke, black fill.
   background(255)
@@ -273,6 +253,20 @@ function draw() {
 
   for (const o of textObjs) {
     o.draw()
+  }
+
+  stallResetCounter += 3.5
+  const shift = Math.PI / 2
+  const max = Math.max(0.2, abs(sin(shift + (Math.PI * (stallResetCounter / 500)))))
+
+  let p
+  p = speed * max
+
+  for (const o of textObjs) {
+    o.progress += p
+    if (o.minY > 400) {
+      o.resetSlitScan()
+    }
   }
 
   // y += speed
