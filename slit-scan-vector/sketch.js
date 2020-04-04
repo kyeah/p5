@@ -225,9 +225,10 @@ const drawScanLine = (yShift) => {
 const spacing = 220
 
 const drawBounds = () => {
+  const offset = 100
   stroke(0, 255, 0)
-  line(0, 0, width, 0)
-  line(0, 400, width, 400)
+  line(0, offset, width, offset)
+  line(0, 400 + offset, width, 400 + offset)
   line(1200, 0, 1200, height)
   noStroke()
 }
