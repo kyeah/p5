@@ -336,12 +336,27 @@ function draw() {
         o.isScanned && o.centerY >= 300) {
       o.stallResetCounter = 100
       o.speed = speed * 0.2
-    } else if (o.isScanned && o.stallResetCounter > 200) {
+    } else if (o.stallResetCounter > 200) {
       o.speed = speed
     }
 
+  //   o.progress += o.speed
+  // })
+
+  // textObjs.forEach((o, i) => {
+  //   const prevObj = i > 0 ? textObjs[i - 1] : null
+  //   if (prevObj &&
+  //       ((prevObj.isScanned && !prevObj.hasStopped) || (prevObj.stallResetCounter == 0)) &&
+  //       !o.isScanned) {
+  //     o.stallResetCounter = 100
+  //     o.speed = speed * 0.2
+  //   } else if (o.stallResetCounter > 200) {
+  //     o.speed = speed
+  //   }
+
     o.progress += o.speed
   })
+
 
   const lowestObj = textObjs[0]
   if (lowestObj.minY > 400 + offset) {
