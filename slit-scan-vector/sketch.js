@@ -14,6 +14,7 @@ const speed = 2
 const nudgeX = 40
 
 const fontSize = 48
+const sampleFactor = 5
 const spacing = 220
 
 const textObjs = []
@@ -22,8 +23,8 @@ const textObjs = []
 const y = 100
 
 // The control center for MOUSE mode.
-const ctrlX = 100
-const ctrlY = 100
+const ctrlX = y
+const ctrlY = y
 
 // The preferred text boundaries at the start are 800x100.
 // 
@@ -60,14 +61,13 @@ let font
 //       for more guidance: https://github.com/processing/p5.js/wiki/Local-server
 function preload() {
   font = loadFont('assets/KevinTest3-Regular.otf')
-  console.log(font)
 }
 
 class Text {
   constructor(text, bounds, progress) {
     this.text = text
     this.points = font.textToPoints(text, 0, 0, fontSize, {
-      sampleFactor: 5,
+      sampleFactor,
       simplifyThreshold: 0
     })
 
@@ -204,7 +204,7 @@ const getCharacterBoundaries = (text) => {
 
     // Convert the single character into points and count the length.
     const test = font.textToPoints(char, 0, 0, fontSize, {
-      sampleFactor: 5,
+      sampleFactor,
       simplifyThreshold: 0
     })
 
@@ -345,7 +345,7 @@ function draw() {
   // As soon as the bottom text is out of frame, reset it back to the
   // top behind the other text objects.
   const lowestObj = textObjs[0]
-  if (lowestObj.minY > 400) {
+  if (lowestObj.minY > height) {
     const progress = textObjs[textObjs.length - 1].progress - spacing
     lowestObj.resetSlitScan(progress)
     textObjs.shift()
