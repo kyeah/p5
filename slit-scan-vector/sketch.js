@@ -4,6 +4,7 @@ const DEBUG = false
 
 // Modes: MOUSE, SINE
 const mode = 'MOUSE'
+const speed = 0.5 // # of steps per frame
 
 const _l = _.noConflict()
 
@@ -17,7 +18,7 @@ const _l = _.noConflict()
 //       for more guidance: https://github.com/processing/p5.js/wiki/Local-server
 let font;
 function preload() {
-  font = loadFont('assets/KevinTestFont-Regular.otf')
+  font = loadFont('assets/KevinTest2-Regular.otf')
 }
 
 // The raw points that will represent our text when initialized.
@@ -38,6 +39,7 @@ let bounds
 // A counter to represent the line being scanned through. This doesn't actually
 // match exactly what you'll see because I'm lazy right now.
 let y
+let progress
 
 const yMin = -100
 const yMax = 100
@@ -51,13 +53,14 @@ const stallResetTime = 50
 // 
 // We don't actually want the canvas to be that tight,
 // so specify how much extra room we're providing for slit-scanning.
-const width = 1000
+const width = 1400
 const height = 800
 const widthScale = 1 / (width / 800)
 const heightScale = 1 / (height / 100)
 
 // This is it! Our text!
 const text = 'GENERATIVE'
+const fontSize = 32
 
 // Break down our text into characters and calculate the indices
 // that mark the next character. For instance, if the first character 'G'
@@ -69,7 +72,7 @@ const setupCharacterBoundaries = () => {
     const prevBoundary = arr[arr.length - 1] || 0
 
     // Convert the single character into points and count the length.
-    const test = font.textToPoints(char, 0, 0, 32, {
+    const test = font.textToPoints(char, 0, 0, fontSize, {
       sampleFactor: 5,
       simplifyThreshold: 0
     })
@@ -89,6 +92,7 @@ const resetSlitScan = () => {
   }
 
   y = yMin
+  progress = 0
   stallResetCounter = 0
 }
 
@@ -122,10 +126,18 @@ const drawScanLine = (yShift) => {
   noStroke()
 }
 
+const drawBounds = () => {
+  stroke(0, 255, 0)
+  line(0, 0, width, 0)
+  line(0, 400, width, 400)
+  line(1200, 0, 1200, height)
+  noStroke()
+}
+
 function setup() {
   createCanvas(width, height)
 
-  points = font.textToPoints(text, 0, 0, 32, {
+  points = font.textToPoints(text, 0, 0, fontSize, {
     sampleFactor: 5,
     simplifyThreshold: 0
   })
@@ -195,19 +207,22 @@ function draw() {
 
     vertex(
       xToCanvas(p.x) + (p.shiftX || 0),
-      yToCanvas(p.y) + (p.shiftY || 0)
+      yToCanvas(p.y) + (p.shiftY || 0) + (progress)
     )
   })
 
   endShape()
 
-  y += 1
+  y += speed
+  progress -= speed * 4
 
   if (hasNotShifted) {
     stallResetCounter += 1
   } else {
     drawScanLine(shiftY)
   }
+
+  drawBounds()
 
   if (y > yMax || stallResetCounter > stallResetTime) {
     resetSlitScan()
