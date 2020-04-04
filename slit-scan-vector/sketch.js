@@ -3,6 +3,7 @@
 const _l = _.noConflict()
 
 const DEBUG = false
+const DRAW_SHADOW = false
 
 // Modes: MOUSE, SINE
 const mode = 'MOUSE'
@@ -189,6 +190,21 @@ class Text {
     this.centerX = this.minX + ((this.maxX - this.minX) / 2)
     this.centerY = this.minY + ((this.maxY - this.minY) / 2)
   }
+
+  drawShadow () {
+    beginShape()
+    this.pointsShifted.forEach((p, i) => {
+      if (this.characterBoundaries.includes(i)) {
+        endShape()
+        beginShape()
+      }
+
+      const newX = this.xToCanvas(p.x) + (p.shiftX || 0) + nudgeX
+      const newY = this.yToCanvas(p.y) + (p.shiftY || 0) + (this.progress)
+      vertex(newX, newY + 2)
+    })
+    endShape()
+  }
 }
 
 // Break our text down into characters and calculate the indices
@@ -281,6 +297,11 @@ function draw() {
   noStroke()
 
   for (const o of textObjs) {
+    if (DRAW_SHADOW) {
+      fill(255)
+      o.drawShadow()
+    }
+
     const color = o.text.startsWith('G') ? gColor : tColor
     fill(color)
     o.draw()
@@ -352,5 +373,7 @@ function draw() {
     textObjs.push(lowestObj)
   }
 
-  drawScanLine()
+  if (DEBUG) {
+    drawScanLine()
+  }
 }
