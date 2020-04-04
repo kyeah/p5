@@ -165,7 +165,7 @@ class Text {
           p.shiftX = mouseX - ctrlX
         }
 
-        p.shiftY = shiftY
+        p.shiftY = Math.max(shiftY, 0)
       }
 
       const newX = this.xToCanvas(p.x) + (p.shiftX || 0) + nudgeX
@@ -223,7 +223,7 @@ const drawScanLine = (yShift) => {
   // and projected scan shift for the user.
   if (mode === 'MOUSE') {
     ellipse(ctrlX, ctrlY, 10)
-    line(ctrlX, ctrlY, mouseX, mouseY)
+    line(ctrlX, ctrlY, mouseX, Math.max(mouseY, ctrlY))
   }
 
   noStroke()
