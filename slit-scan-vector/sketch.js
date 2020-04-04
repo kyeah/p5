@@ -103,7 +103,7 @@ class Text {
     if (!translated) {
       translated = true
       // Move the drawing into our draw boundaries.
-      translate(-this.xToCanvas(this.bounds.x), -this.yToCanvas(this.bounds.y))
+      // translate(-this.xToCanvas(this.bounds.x), -this.yToCanvas(this.bounds.y) - 100)
     }
 
     // Slit line attributes for sine mode
@@ -187,7 +187,7 @@ const ctrlY = 200
 // 
 // We don't actually want the canvas to be that tight,
 // so specify how much extra room we're providing for slit-scanning.
-const width = 1400
+const width = 1200
 const height = 600
 const widthScale = 1 / (width / 800)
 const heightScale = 1 / (height / 100)
