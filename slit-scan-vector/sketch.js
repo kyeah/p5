@@ -20,10 +20,11 @@ let font;
 
 function preload() {
   font = loadFont('assets/KevinTest2-Regular.otf')
+  console.log(font)
 }
 
 // This is it! Our text!
-const fontSize = 32
+const fontSize = 48
 
 class Text {
   constructor(text, bounds, progress) {
@@ -191,7 +192,7 @@ const ctrlY = 200
 // We don't actually want the canvas to be that tight,
 // so specify how much extra room we're providing for slit-scanning.
 const width = 1400
-const height = 800
+const height = 600
 const widthScale = 1 / (width / 800)
 const heightScale = 1 / (height / 100)
 
@@ -237,17 +238,19 @@ function setup() {
   createCanvas(width, height)
 
   // Usually you would do something like:
-  // bounds = font.textBounds(` ${text} `, 0, 0, 32)
+  // const bounds = font.textBounds(` GENERATIVE `, 0, 0, fontSize)
+  // console.log(bounds)
   //
   // However, we aren't fitting our text tightly within our canvas,
   // so to make this easy for myself I'm copying the bounds that I get
   // from a canvas of 800x100.
+  //
   const bounds = { x: 0, y: -23.296, h: 24, w: 258.176, advance: 0 }
 
   textObjs.push(new Text(
     'GENERATIVE',
     bounds,
-    100
+    200
   ))
 
   textObjs.push(new Text(
