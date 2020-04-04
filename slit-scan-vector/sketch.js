@@ -8,6 +8,12 @@ const speed = 2 // # of steps per frame
 
 const _l = _.noConflict()
 
+
+const pickHex = (arr) => {
+  const idx = random(0, arr.length)
+  return `#${arr.splice(idx, 1)}`
+}
+
 // Ensure the .ttf or .otf font stored in the assets directory
 // is loaded before setup() and draw() are called.
 //
@@ -236,8 +242,23 @@ const drawBounds = () => {
 //
 const bounds = { x: 0, y: -23.296, h: 24, w: 258.176, advance: 0 }
 
+let colors
+let bgColor
+let gColor
+let tColor
+
 function setup() {
   createCanvas(width, height)
+
+  const scheme = new ColorScheme
+  scheme.from_hue(21)
+    .scheme('triade')
+    .variation('pastel')
+
+  colors = scheme.colors()
+  bgColor = pickHex(colors)
+  gColor = pickHex(colors)
+  tColor = pickHex(colors)
 
   const texts = ['GENERATIVE', 'TYPOGRAPHY']
 
@@ -258,13 +279,14 @@ function setup() {
 
 function draw() {
   // White background and stroke, black fill.
-  background(255)
+  background(bgColor)
   noStroke()
   //  stroke(255, 255, 255)
-  fill(0, 0, 0)
 
   translated = false
   for (const o of textObjs) {
+    const color = o.text.startsWith('G') ? gColor : tColor
+    fill(color)
     o.draw()
     o.hasStopped = (o.stallResetCounter >= 100)
     o.isScanned = (!o.shiftsUpdated && o.minY >= 200)
