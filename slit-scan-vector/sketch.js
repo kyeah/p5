@@ -205,23 +205,16 @@ function draw() {
       p.shiftY = shiftY
     }
 
-    if (p.shiftX) {
-      vertex(
-        xToCanvas(p.x) + (p.shiftX || 0),
-        yToCanvas(p.y) + (p.shiftY || 0) + (progress)
-      )
-    } else {
-      vertex(
-        xToCanvas(p.x) + 300,
-        yToCanvas(p.y)
-      )      
-    }
+    vertex(
+      xToCanvas(p.x) + (p.shiftX || 0),
+      yToCanvas(p.y) + (p.shiftY || 0) + (progress)
+    )
   })
 
   endShape()
 
   // y += speed
-  progress -= speed * 2
+  progress -= speed * 4
 
   if (hasNotShifted) {
     stallResetCounter += 1
