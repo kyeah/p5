@@ -222,15 +222,21 @@ const drawScanLine = (yShift) => {
   noStroke()
 }
 
+const offset = 100
 const spacing = 220
 
 const drawBounds = () => {
-  const offset = 100
   stroke(0, 255, 0)
   line(0, offset, width, offset)
   line(0, 400 + offset, width, 400 + offset)
   line(1200, 0, 1200, height)
   noStroke()
+}
+
+const drawMask = () => {
+  fill(255)
+  rect(0, -200, width, offset + 200)
+  rect(1200, -200, 2000, 1000)
 }
 
 // Usually you would do something like:
@@ -337,14 +343,8 @@ function draw() {
     o.progress += o.speed
   })
 
-    let createNewText = false
-  if (textObjs[0].isScanned && textObjs.length <= 4) {
-    createNewText = true
-  }
-
-
   const lowestObj = textObjs[0]
-  if (lowestObj.minY > 400) {
+  if (lowestObj.minY > 400 + offset) {
     lowestObj.resetSlitScan()
     lowestObj.progress = textObjs[textObjs.length - 1].progress - spacing
     textObjs.shift()
@@ -354,5 +354,6 @@ function draw() {
   textObjs = textObjs.filter((o) => !o.delete)
 
   drawScanLine()
-  drawBounds()
+  // drawBounds()
+  drawMask()
 }
