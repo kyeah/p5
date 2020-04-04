@@ -282,6 +282,8 @@ function setup() {
     currentOffset -= spacing
     currentTextIndex = (currentTextIndex + 1) % texts.length
   }
+
+  createLoop({ duration: 10, gif:true, download: true })
 }
 
 function draw() {
