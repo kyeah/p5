@@ -4,7 +4,7 @@ const DEBUG = false
 
 // Modes: MOUSE, SINE
 const mode = 'MOUSE'
-const speed = 0.5 // # of steps per frame
+const speed = 2 // # of steps per frame
 
 const _l = _.noConflict()
 
@@ -43,6 +43,9 @@ let progress
 
 const yMin = 200
 const yMax = 100
+
+const ctrlX = 200
+const ctrlY = yMin
 
 // A counter to stall reset after the entire text has been slit-scanned.
 // This lets us appreciate our work for a bit.
@@ -91,8 +94,8 @@ const resetSlitScan = () => {
     p.shiftY = undefined
   }
 
-  y = 0
-  progress = 0
+  y = yMin
+  progress = 100
   stallResetCounter = 0
 }
 
@@ -123,6 +126,8 @@ const debugRed = (p) => {
 const drawScanLine = (yShift) => {
   stroke(255, 0, 0)
   line(0, y, width, y)
+  ellipse(ctrlX, ctrlY, 10)
+  line(ctrlX, ctrlY, mouseX, mouseY)
   noStroke()
 }
 
@@ -172,12 +177,13 @@ function draw() {
 
   let shiftY
   if (mode === 'SINE') {
-    shiftY = 15 * ((y - yMin) / period)
+    shiftY = 15 * (progress / period)
   } else if (mode === 'MOUSE') {
-    shiftY = mouseY
+    shiftY = mouseY - ctrlY
   }
 
   let hasNotShifted = true
+  let minY
   
   // Draw the text
   pointsShifted.forEach((p, i) => {
@@ -194,36 +200,62 @@ function draw() {
 
     // Add shift if the scanline has crossed the point.
     const rotate = false
-    if (!p.shiftX && yToCanvas(p.y) - progress > y) {
+    if (!p.shiftX && yToCanvas(p.y) + progress  > y) {
       hasNotShifted = false
       if (mode === 'SINE') {
-        p.shiftX = amplitude * sin(Math.PI * ((y - yMin) / period))
+        p.shiftX = amplitude * sin(Math.PI * (progress / period))
       } else {
-        p.shiftX = mouseX
+        p.shiftX = mouseX - ctrlX
       }
 
       p.shiftY = shiftY
     }
 
+    const newY = yToCanvas(p.y) + (p.shiftY || 0) + (progress)
+    if (!minY) {
+      minY = newY
+    } else {
+      minY = Math.min(minY, newY)
+    }
+
     vertex(
       xToCanvas(p.x) + (p.shiftX || 0),
-      yToCanvas(p.y) + (p.shiftY || 0) + (progress)
+      newY
     )
   })
 
   endShape()
 
   // y += speed
-  progress -= speed * 4
+  // progress += speed
 
-  if (hasNotShifted) {
-    stallResetCounter += 1
+  // if (hasNotShifted && pointsShifted[0].shiftX) {
+  //   stallResetCounter += 1
+  // }
+  // if (stallResetCounter == 0 || stallResetCounter < 15 || stallResetCounter > 60) {
+  //   progress += speed
+  // }
+
+  if (hasNotShifted && pointsShifted[0].shiftX) {
+    stallResetCounter += 3.5
+    const shift = Math.PI / 2
+    const max = Math.max(0.2, abs(sin(shift + (Math.PI * (stallResetCounter / 200)))))
+    if (stallResetCounter > 200) {
+      progress += speed
+    } else {
+      progress += speed * max
+    }
   } else {
-    drawScanLine(shiftY)
+    progress += speed
   }
+  
+  drawScanLine(shiftY)
 
   drawBounds()
 
+  if (minY > 400) {
+    resetSlitScan()
+  }
   //if (y > yMax || stallResetCounter > stallResetTime) {
   //  resetSlitScan()
   //}
