@@ -18,16 +18,20 @@ const _l = _.noConflict()
 //       for more guidance: https://github.com/processing/p5.js/wiki/Local-server
 let font;
 
+const awkAdjustX = 40
+
 function preload() {
-  font = loadFont('assets/KevinTest2-Regular.otf')
+  font = loadFont('assets/KevinTest3-Regular.otf')
   console.log(font)
 }
 
 // This is it! Our text!
 const fontSize = 48
+let translated = false
 
 class Text {
   constructor(text, bounds, progress) {
+    this.text = text
     this.initialProgress = progress
 
     this.points = font.textToPoints(text, 0, 0, fontSize, {
@@ -49,19 +53,19 @@ class Text {
     this.progress = progress
     // A counter to stall reset after the entire text has been slit-scanned.
     // This lets us appreciate our work for a bit.
-    this.stallResetCounter = -40
+    this.stallResetCounter = 0
   }
 
   // Reset the points for another round of slit-scanning!
   resetSlitScan () {
-    this.pointsShifted = _l.cloneDeep(this.points)
+    // this.pointsShifted = _l.cloneDeep(this.points)
     for (const p of this.pointsShifted) {
       p.shiftX = undefined
       p.shiftY = undefined
     }
 
     this.progress = 0
-    this.stallResetCounter = -40
+    this.stallResetCounter = 0
   }
 
   // Scale a text point to the canvas size
@@ -90,8 +94,8 @@ class Text {
   draw () {
     beginShape()
 
-    // hack to only translate on first thing for now
-    if (this.initialProgress > 0) {
+    if (!translated) {
+      translated = true
       // Move the drawing into our draw boundaries.
       translate(-this.xToCanvas(this.bounds.x), -this.yToCanvas(this.bounds.y))
     }
@@ -107,8 +111,11 @@ class Text {
       shiftY = mouseY - ctrlY
     }
 
-    let hasNotShifted = true
-    let minY
+    this.shiftsUpdated = false
+    this.minX = undefined
+    this.minY = undefined
+    this.maxX = undefined
+    this.maxY = undefined
   
     // Draw the text
     this.pointsShifted.forEach((p, i) => {
@@ -125,7 +132,7 @@ class Text {
 
       // Add shift if the scanline has crossed the point.
       if (!p.shiftX && this.yToCanvas(p.y) + this.progress > y) {
-        hasNotShifted = false
+        this.shiftsUpdated = true
         if (mode === 'SINE') {
           p.shiftX = amplitude * sin(Math.PI * (this.progress / period))
         } else {
@@ -135,50 +142,33 @@ class Text {
         p.shiftY = shiftY
       }
 
+      const newX = this.xToCanvas(p.x) + (p.shiftX || 0) + awkAdjustX
       const newY = this.yToCanvas(p.y) + (p.shiftY || 0) + (this.progress)
-      if (!minY) {
-        minY = newY
+
+      if (!this.minX) {
+        this.minX = this.maxX = newX
+        this.minY = this.maxY = newY
       } else {
-        minY = Math.min(minY, newY)
+        this.minX = Math.min(this.minX, newX)
+        this.maxX = Math.max(this.maxX, newX)
+        this.minY = Math.min(this.minY, newY)
+        this.maxY = Math.max(this.maxY, newY)
       }
 
-      vertex(
-        this.xToCanvas(p.x) + (p.shiftX || 0),
-        newY
-      )
+      vertex(newX, newY)
     })
 
     endShape()
 
-    if (hasNotShifted) {
-      if (this.stallResetCounter < 0) {
-        this.progress += speed
-        this.stallResetCounter += 1
-      } else {
-        this.stallResetCounter += 3.5
-        const shift = Math.PI / 2
-        const max = Math.max(0.2, abs(sin(shift + (Math.PI * (this.stallResetCounter / 200)))))
-        if (this.stallResetCounter > 200) {
-          this.progress += speed
-        } else {
-          this.progress += speed * max
-        }
-      }
-    } else {
-      this.stallResetCounter = 0
-      this.progress += speed
-    }
-
-    if (minY > 400) {
-      this.resetSlitScan()
-    }    
+    this.centerX = this.minX + ((this.maxX - this.minX) / 2)
+    this.centerY = this.minY + ((this.maxY - this.minY) / 2)
   }
 }
 
 // The raw points that will represent our text when initialized.
 let points
 
-const textObjs = []
+let textObjs = []
 
 // A counter to represent the line being scanned through. This doesn't actually
 // match exactly what you'll see because I'm lazy right now.
@@ -226,6 +216,8 @@ const drawScanLine = (yShift) => {
   noStroke()
 }
 
+const spacing = 220
+
 const drawBounds = () => {
   stroke(0, 255, 0)
   line(0, 0, width, 0)
@@ -234,33 +226,33 @@ const drawBounds = () => {
   noStroke()
 }
 
+// Usually you would do something like:
+// const bounds = font.textBounds(` GENERATIVE `, 0, 0, fontSize)
+// console.log(bounds)
+//
+// However, we aren't fitting our text tightly within our canvas,
+// so to make this easy for myself I'm copying the bounds that I get
+// from a canvas of 800x100.
+//
+const bounds = { x: 0, y: -23.296, h: 24, w: 258.176, advance: 0 }
+
 function setup() {
   createCanvas(width, height)
 
-  // Usually you would do something like:
-  // const bounds = font.textBounds(` GENERATIVE `, 0, 0, fontSize)
-  // console.log(bounds)
-  //
-  // However, we aren't fitting our text tightly within our canvas,
-  // so to make this easy for myself I'm copying the bounds that I get
-  // from a canvas of 800x100.
-  //
-  const bounds = { x: 0, y: -23.296, h: 24, w: 258.176, advance: 0 }
+  const texts = ['GENERATIVE', 'TYPOGRAPHY']
 
-  textObjs.push(new Text(
-    'GENERATIVE',
-    bounds,
-    200
-  ))
+  let currentTextIndex = 0
+  let currentOffset = 0
 
-  textObjs.push(new Text(
-    'TYPOGRAPHY',
-    bounds,
-    -100
-  ))
+  for (let i = 0; i < 4; i++) {
+    textObjs.push(new Text(
+      texts[currentTextIndex],
+      bounds,
+      currentOffset
+    ))
 
-  for (const o of textObjs) {
-    // o.resetSlitScan()
+    currentOffset -= spacing
+    currentTextIndex = (currentTextIndex + 1) % texts.length
   }
 }
 
@@ -271,8 +263,11 @@ function draw() {
   //  stroke(255, 255, 255)
   fill(0, 0, 0)
 
+  translated = false
   for (const o of textObjs) {
     o.draw()
+    o.hasStopped = (o.stallResetCounter >= 100)
+    o.isScanned = (!o.shiftsUpdated && o.minY >= 200)
   }
 
   // y += speed
@@ -287,6 +282,53 @@ function draw() {
   //if (y > yMax || stallResetCounter > stallResetTime) {
   //  resetSlitScan()
   //}
+
+  for (const o of textObjs) {
+    if (o.shiftsUpdated) {
+      // Getting slit-scanned, go full speed
+      o.stallResetCounter = 0
+      o.speed = speed
+    } else if (o.minY < 0) {
+      // Just created, go full spped
+      o.stallResetCounter = 0
+      o.speed = speed
+    } else {
+      o.stallResetCounter += 3.5
+      const shift = Math.PI / 2
+      const max = Math.max(0.2, abs(sin(shift + (Math.PI * (o.stallResetCounter / 200)))))
+      o.speed = speed * max
+    }
+  }
+
+  textObjs.forEach((o, i) => {
+    const nextObj = i <= textObjs.length - 2 ? textObjs[i + 1] : null
+    if (nextObj &&
+        !nextObj.isScanned && !nextObj.shiftsUpdated && !nextObj.hasStopped &&
+        o.isScanned && o.centerY >= 300) {
+      o.stallResetCounter = 100
+      o.speed = speed * 0.2
+    } else if (o.isScanned && o.stallResetCounter > 200) {
+      o.speed = speed
+    }
+
+    o.progress += o.speed
+  })
+
+    let createNewText = false
+  if (textObjs[0].isScanned && textObjs.length <= 4) {
+    createNewText = true
+  }
+
+
+  const lowestObj = textObjs[0]
+  if (lowestObj.minY > 400) {
+    lowestObj.resetSlitScan()
+    lowestObj.progress = textObjs[textObjs.length - 1].progress - spacing
+    textObjs.shift()
+    textObjs.push(lowestObj)
+  }
+
+  textObjs = textObjs.filter((o) => !o.delete)
 
   drawScanLine()
   drawBounds()
