@@ -4,6 +4,7 @@ const _l = _.noConflict()
 
 const DEBUG = false
 const DRAW_SHADOW = false
+const MAKE_GIF = true
 
 // Modes: MOUSE, SINE
 const mode = 'MOUSE'
@@ -12,7 +13,7 @@ const mode = 'MOUSE'
 const speed = 2
 
 // Nudge X so type falls centered in the frame
-const nudgeX = 40
+const nudgeX = 35
 
 const fontSize = 48
 const sampleFactor = 5
@@ -262,9 +263,9 @@ function setup() {
     .variation('pastel')
 
   colors = scheme.colors()
-  bgColor = pickHex(colors)
-  gColor = pickHex(colors)
-  tColor = pickHex(colors)
+  bgColor = "#00CCAA" // pickHex(colors)
+  gColor = "#FFFFFF"  // pickHex(colors)
+  tColor = "#2323E2"  // pickHex(colors)
 
   // Setup a couple of text objects.
   // Add two sets of "GENERATIVE" "TYPOGRAPHY".
@@ -289,6 +290,10 @@ function setup() {
     // I adjusted the spacing manually until it looked right.
     currentOffset -= spacing
     currentTextIndex = (currentTextIndex + 1) % texts.length
+  }
+
+  if (MAKE_GIF) {
+    createLoop({ duration: 10, gif: true, download: true })
   }
 }
 
