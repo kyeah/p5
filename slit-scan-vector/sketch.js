@@ -4,25 +4,26 @@ const _l = _.noConflict()
 
 const DEBUG = false
 const DRAW_SHADOW = false
-const MAKE_GIF = true
+const MAKE_GIF = false
 
 // Modes: MOUSE, SINE
 const mode = 'MOUSE'
 
 // Max # of px per framestep for type to fall.
-const speed = 2
+const speed = 1.5
 
-// Nudge X so type falls centered in the frame
-const nudgeX = 35
+// Nudge X so type falls centered in the frame.
+const nudgeX = 20
 
-const fontSize = 48
+const fontSize = 24
 const sampleFactor = 5
-const spacing = 220
+const spacing = 130
 
 const textObjs = []
+const numTextObjs = 6
 
 // The y-level of the scanline.
-const y = 100
+const y = 150
 
 // The control center for MOUSE mode.
 const ctrlX = y
@@ -32,8 +33,8 @@ const ctrlY = y
 // 
 // We don't actually want the canvas to be that tight,
 // so specify how much extra room we're providing for slit-scanning.
-const width = 1200
-const height = 400
+const width = 600
+const height = 600
 const widthScale = 1 / (width / 800)
 const heightScale = 1 / (height / 100)
 
@@ -279,7 +280,7 @@ function setup() {
   let currentTextIndex = 0
   let currentOffset = 0
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < numTextObjs; i++) {
     textObjs.push(new Text(
       texts[currentTextIndex],
       bounds,
@@ -293,7 +294,7 @@ function setup() {
   }
 
   if (MAKE_GIF) {
-    createLoop({ duration: 10, gif: true, download: true })
+    createLoop({ duration: 20, gif: true, download: true })
   }
 }
 
@@ -317,7 +318,7 @@ function draw() {
     o.hasStopped = (o.stallResetCounter >= 100)
     o.isScanned = (!o.shiftsUpdated && o.minY >= y)
 
-    if (o.minY < -100 || o.shiftsUpdated) {
+    if (o.minY < 50 || o.shiftsUpdated) {
       // It hasn't dropped into view yet, or it's
       // getting slit-scanned, so go full speed.
       o.stallResetCounter = 0
