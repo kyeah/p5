@@ -1,11 +1,58 @@
 'use strict'
 
+const _l = _.noConflict()
+
 const DEBUG = false
+const DRAW_SHADOW = false
+const MAKE_GIF = false
 
 // Modes: MOUSE, SINE
 const mode = 'MOUSE'
 
-const _l = _.noConflict()
+// Max # of px per framestep for type to fall.
+const speed = 1.5
+
+// Nudge X so type falls centered in the frame.
+const nudgeX = 20
+
+const fontSize = 24
+const sampleFactor = 5
+const spacing = 130
+
+const textObjs = []
+const numTextObjs = 6
+
+// The y-level of the scanline.
+const y = 150
+
+// The control center for MOUSE mode.
+const ctrlX = y
+const ctrlY = y
+
+// The preferred text boundaries at the start are 800x100.
+// 
+// We don't actually want the canvas to be that tight,
+// so specify how much extra room we're providing for slit-scanning.
+const width = 600
+const height = 600
+const widthScale = 1 / (width / 800)
+const heightScale = 1 / (height / 100)
+
+// Usually you would do something like:
+// const bounds = font.textBounds(` GENERATIVE `, 0, 0, fontSize)
+// console.log(bounds)
+//
+// However, we aren't fitting our text tightly within our canvas,
+// so to make this easy for myself I'm copying the bounds that I get
+// from a canvas of 800x100.
+//
+const bounds = { x: 0, y: -23.296, h: 24, w: 258.176, advance: 0 }
+
+let colors
+let bgColor
+let gColor
+let tColor
+let font
 
 // Ensure the .ttf or .otf font stored in the assets directory
 // is loaded before setup() and draw() are called.
@@ -15,62 +62,167 @@ const _l = _.noConflict()
 //
 //       I use `python -m http.server` but you can follow p5js docs
 //       for more guidance: https://github.com/processing/p5.js/wiki/Local-server
-let font;
 function preload() {
-  font = loadFont('assets/KevinTestFont-Regular.otf')
+  font = loadFont('assets/KevinTest3-Regular.otf')
 }
 
-// The raw points that will represent our text when initialized.
-let points
+class Text {
+  constructor(text, bounds, progress) {
+    this.text = text
+    this.points = font.textToPoints(text, 0, 0, fontSize, {
+      sampleFactor,
+      simplifyThreshold: 0
+    })
 
-// A copy of the text points, which will be slit-scanned and reset on occasion.
-let pointsShifted
+    // Contains the indices that mark the end of a character. This will
+    // allow us to break our text up into individual character shapes,
+    // for cleaner typography. yay!
+    this.characterBoundaries = getCharacterBoundaries(text)
 
-// Contains the indices that mark the end of a character. This will
-// allow us to break our text up into individual character shapes,
-// for cleaner typography. yay!
-let characterBoundaries
+    // A copy of the text points, which will be slit-scanned and reset on occasion.
+    this.pointsShifted = _l.cloneDeep(this.points)
+    // The text boundaries. Admittedly, I have no idea what this information represents,
+    // but it helps us to scale and fit our text to screen.
+    this.bounds = bounds
+    // Movement of text
+    this.progress = progress
+    // A counter to stall reset after the entire text has been slit-scanned.
+    // This lets us appreciate our work for a bit.
+    this.stallResetCounter = 0
+  }
 
-// The text boundaries. Admittedly, I have no idea what this information represents,
-// but it helps us to scale and fit our text to screen.
-let bounds
+  // Reset the points for another round of slit-scanning!
+  resetSlitScan (progress) {
+    // this.pointsShifted = _l.cloneDeep(this.points)
+    for (const p of this.pointsShifted) {
+      p.shiftX = undefined
+      p.shiftY = undefined
+    }
 
-// A counter to represent the line being scanned through. This doesn't actually
-// match exactly what you'll see because I'm lazy right now.
-let y
+    this.progress = progress
+    this.stallResetCounter = 0
+  }
 
-const yMin = -100
-const yMax = 100
+  // Scale a text point to the canvas size
+  xToCanvas (x) {
+    return x * width * widthScale / this.bounds.w
+  }
 
-// A counter to stall reset after the entire text has been slit-scanned.
-// This lets us appreciate our work for a bit.
-let stallResetCounter = 0
-const stallResetTime = 50
+  // Scale a text point to the canvas size.
+  yToCanvas (y) {
+    return y * height * heightScale / this.bounds.h
+  }
 
-// The preferred text boundaries at the start are 800x100.
-// 
-// We don't actually want the canvas to be that tight,
-// so specify how much extra room we're providing for slit-scanning.
-const width = 1000
-const height = 800
-const widthScale = 1 / (width / 800)
-const heightScale = 1 / (height / 100)
+  // Add a lil debugging circle at point p.
+  debugRed (p) {
+    if (DEBUG) {
+      fill(255, 0, 0)
+      ellipse(
+        this.xToCanvas(p.x) + (p.shiftX || 0),
+        this.yToCanvas(p.y) + (p.shiftY || 0),
+        20
+      )
+      fill(0,0,0)
+    }
+  }
+  
+  draw () {
+    beginShape()
 
-// This is it! Our text!
-const text = 'GENERATIVE'
+    // Slit line attributes for sine mode
+    const amplitude = 15
+    const period = 30
 
-// Break down our text into characters and calculate the indices
-// that mark the next character. For instance, if the first character 'G'
-// has 536 points, then the character boundary will be '536' and we'll end
-// the 'G' shape there. Otherwise, every letter will be connected in one
-// big ol' shape.
-const setupCharacterBoundaries = () => {
-  characterBoundaries = text.split('').reduce((arr, char) => {
+    let shiftY
+    if (mode === 'SINE') {
+      shiftY = 15 * (this.progress / period)
+    } else if (mode === 'MOUSE') {
+      shiftY = mouseY - ctrlY
+    }
+
+    this.shiftsUpdated = false
+    this.minX = undefined
+    this.minY = undefined
+    this.maxX = undefined
+    this.maxY = undefined
+  
+    // Draw the text
+    this.pointsShifted.forEach((p, i) => {
+      // If we've reached a character
+    // boundary, start a new shape.
+      if (this.characterBoundaries.includes(i)) {
+        endShape()
+        beginShape()
+
+        // Add a lil circle to let us know where
+        // the new character is starting.
+        this.debugRed(p)
+      }
+
+      // Add shift if the scanline has crossed the point.
+      if (!p.shiftX && this.yToCanvas(p.y) + this.progress > y) {
+        this.shiftsUpdated = true
+        if (mode === 'SINE') {
+          p.shiftX = amplitude * sin(Math.PI * (this.progress / period))
+        } else {
+          p.shiftX = mouseX - ctrlX
+        }
+
+        p.shiftY = Math.max(shiftY, 0)
+      }
+
+      const newX = this.xToCanvas(p.x) + (p.shiftX || 0) + nudgeX
+      const newY = this.yToCanvas(p.y) + (p.shiftY || 0) + (this.progress)
+
+      if (!this.minX) {
+        this.minX = this.maxX = newX
+        this.minY = this.maxY = newY
+      } else {
+        this.minX = Math.min(this.minX, newX)
+        this.maxX = Math.max(this.maxX, newX)
+        this.minY = Math.min(this.minY, newY)
+        this.maxY = Math.max(this.maxY, newY)
+      }
+
+      vertex(newX, newY)
+    })
+
+    endShape()
+
+    this.centerX = this.minX + ((this.maxX - this.minX) / 2)
+    this.centerY = this.minY + ((this.maxY - this.minY) / 2)
+  }
+
+  drawShadow () {
+    beginShape()
+    this.pointsShifted.forEach((p, i) => {
+      if (this.characterBoundaries.includes(i)) {
+        endShape()
+        beginShape()
+      }
+
+      const newX = this.xToCanvas(p.x) + (p.shiftX || 0) + nudgeX
+      const newY = this.yToCanvas(p.y) + (p.shiftY || 0) + (this.progress)
+      vertex(newX, newY + 2)
+    })
+    endShape()
+  }
+}
+
+// Break our text down into characters and calculate the indices
+// that mark the next character.
+//
+// For instance, if the first character 'G' has 536 points, then the character
+// boundary will be '536' and we'll end the 'G' shape there.
+//
+// Otherwise, every letter will be connected in one big ol' shape.
+const getCharacterBoundaries = (text) => {
+  return text.split('').reduce((arr, char) => {
     const prevBoundary = arr[arr.length - 1] || 0
 
     // Convert the single character into points and count the length.
-    const test = font.textToPoints(char, 0, 0, 32, {
-      sampleFactor: 5,
+    const test = font.textToPoints(char, 0, 0, fontSize, {
+      sampleFactor,
       simplifyThreshold: 0
     })
 
@@ -80,136 +232,154 @@ const setupCharacterBoundaries = () => {
   }, [])
 }
 
-// Reset the points for another round of slit-scanning!
-const resetSlitScan = () => {
-  pointsShifted = _l.cloneDeep(points)
-  for (const p of pointsShifted) {
-    p.shiftX = undefined
-    p.shiftY = undefined
-  }
-
-  y = yMin
-  stallResetCounter = 0
-}
-
-// Scale a text point to the canvas size
-const xToCanvas = (x) => {
-  return x * width * widthScale / bounds.w
-}
-
-// Scale a text point to the canvas size.
-const yToCanvas = (y) => {
-  return y * height * heightScale / bounds.h
-}
-
-// Add a lil debugging circle at point p.
-const debugRed = (p) => {
-  if (DEBUG) {
-    fill(255, 0, 0)
-    ellipse(
-      xToCanvas(p.x) + (p.shiftX || 0),
-      yToCanvas(p.y) + (p.shiftY || 0),
-      20
-    )
-    fill(0,0,0)
-  }
-}
-
-// Draw the scan line.
+// Draw the scan line in red.
 const drawScanLine = (yShift) => {
   stroke(255, 0, 0)
-  line(0, y + yShift, width, y + yShift)
+  line(0, y, width, y)
+
+  // If it's mouse mode, also draw the control point
+  // and projected scan shift for the user.
+  if (mode === 'MOUSE') {
+    ellipse(ctrlX, ctrlY, 10)
+    line(ctrlX, ctrlY, mouseX, Math.max(mouseY, ctrlY))
+  }
+
   noStroke()
 }
 
 function setup() {
   createCanvas(width, height)
 
-  points = font.textToPoints(text, 0, 0, 32, {
-    sampleFactor: 5,
-    simplifyThreshold: 0
-  })
-
-  setupCharacterBoundaries()
-  resetSlitScan()
-
-  // Usually you would do something like:
-  // bounds = font.textBounds(` ${text} `, 0, 0, 32)
+  // Setup some colors
   //
-  // However, we aren't fitting our text tightly within our canvas,
-  // so to make this easy for myself I'm copying the bounds that I get
-  // from a canvas of 800x100.
-  bounds = { x: 0, y: -23.296, h: 24, w: 258.176, advance: 0 }
+  // Pick a color from a generic array of values and add the hex symbol.
+  const pickHex = (arr) => {
+    const idx = random(0, arr.length)
+    return `#${arr.splice(idx, 1)}`
+  }
+
+  const scheme = new ColorScheme
+  scheme.from_hue(21)
+    .scheme('triade')
+    .variation('pastel')
+
+  colors = scheme.colors()
+  bgColor = "#00CCAA" // pickHex(colors)
+  gColor = "#FFFFFF"  // pickHex(colors)
+  tColor = "#2323E2"  // pickHex(colors)
+
+  // Setup a couple of text objects.
+  // Add two sets of "GENERATIVE" "TYPOGRAPHY".
+  //
+  // We're going to reuse the texts over and over again, but two sets
+  // will allow us to make the texts drop continuously instead of
+  // waiting for the text at the bottom to fall out of frame and
+  // be usable again.
+  const texts = ['GENERATIVE', 'TYPOGRAPHY']
+
+  let currentTextIndex = 0
+  let currentOffset = 0
+
+  for (let i = 0; i < numTextObjs; i++) {
+    textObjs.push(new Text(
+      texts[currentTextIndex],
+      bounds,
+      currentOffset
+    ))
+
+    // space the texts out consistently.
+    // I adjusted the spacing manually until it looked right.
+    currentOffset -= spacing
+    currentTextIndex = (currentTextIndex + 1) % texts.length
+  }
+
+  if (MAKE_GIF) {
+    createLoop({ duration: 20, gif: true, download: true })
+  }
 }
 
 function draw() {
-  // White background and stroke, black fill.
-  background(255)
+  background(bgColor)
   noStroke()
-  //  stroke(255, 255, 255)
-  fill(0, 0, 0)
 
-  beginShape()
+  for (const o of textObjs) {
+    if (DRAW_SHADOW) {
+      fill(255)
+      o.drawShadow()
+    }
 
-  // Move the drawing into our draw boundaries.
-  translate(-xToCanvas(bounds.x), -yToCanvas(bounds.y))
-
-  // Slit line attributes for sine mode
-  const amplitude = 15
-  const period = 30
-
-  let shiftY
-  if (mode === 'SINE') {
-    shiftY = 15 * ((y - yMin) / period)
-  } else if (mode === 'MOUSE') {
-    shiftY = mouseY
+    const color = o.text.startsWith('G') ? gColor : tColor
+    fill(color)
+    o.draw()
   }
 
-  let hasNotShifted = true
-  
-  // Draw the text
-  pointsShifted.forEach((p, i) => {
-    // If we've reached a character
-    // boundary, start a new shape.
-    if (characterBoundaries.includes(i)) {
-      endShape()
-      beginShape()
+  // Set some helper attributes and figure out how fast our text should be dropping.
+  for (const o of textObjs) {
+    o.hasStopped = (o.stallResetCounter >= 100)
+    o.isScanned = (!o.shiftsUpdated && o.minY >= y)
 
-      // Add a lil circle to let us know where
-      // the new character is starting.
-      debugRed(p)
+    if (o.minY < 50 || o.shiftsUpdated) {
+      // It hasn't dropped into view yet, or it's
+      // getting slit-scanned, so go full speed.
+      o.stallResetCounter = 0
+      o.speed = speed
+    } else {
+      // It's hanging out either above or below the line, so
+      // give a reasonable sine-wavey momentum. The top will
+      // fall right below the line before going in, and the
+      // bottom will "present" itself in the bottom frame
+      // befire heading out.
+      o.stallResetCounter += 3.5
+
+      // Make sure we start at the top of the sine wave. This way
+      // we ease into a slowdown and then ease back up to speed.
+      //
+      // Also, provide a minimum of 0.2 so that we never
+      // fully stop, cuz that's weird.
+      const shift = Math.PI / 2
+      const waveProgress = o.stallResetCounter / 200
+      const max = Math.max(0.2, abs(sin(shift + (Math.PI * waveProgress))))
+      o.speed = speed * max
+    }
+  }
+
+  // Adjust speed of the bottommost text so that it waits for the text
+  // above it. Since the exact timing and placement of the bottom text
+  // depends on how far the user shifted it down through the scanline,
+  // This helps us to maintain movement consistency.
+  textObjs.forEach((o, i) => {
+    // If the text has already stopped, go ahead and do
+    // full throttle so it doesn't stop multiple times before
+    // or after going through the scanline.
+    if (o.stallResetCounter > 200) {
+      o.speed = speed
     }
 
-    // Add shift if the scanline has crossed the point.
-    const rotate = false
-    if (!p.shift && yToCanvas(p.y) > y) {
-      hasNotShifted = false
-      if (mode === 'SINE') {
-        p.shiftX = amplitude * sin(Math.PI * ((y - yMin) / period))
-      } else {
-        p.shiftX = mouseX
-      }
+    const nextObj = i <= textObjs.length - 2 ? textObjs[i + 1] : null
+    const nextIsScanning = nextObj && (nextObj.shiftsUpdated || nextObj.maxY >= y)
+    const isPastBottomCenter = o.centerY >= y + ((height - y) / 2)
 
-      p.shiftY = shiftY
+    if (nextObj && !nextObj.isScanned && !nextIsScanning && !nextObj.hasStopped &&
+        o.isScanned && isPastBottomCenter) {
+      // Reset speed to the bottom of the sine wave
+      o.stallResetCounter = 100
+      o.speed = speed * 0.2
     }
 
-    vertex(
-      xToCanvas(p.x) + (p.shiftX || 0),
-      yToCanvas(p.y) + (p.shiftY || 0)
-    )
+    o.progress += o.speed
   })
 
-  endShape()
-
-  y += 1
-
-  if (hasNotShifted) {
-    stallResetCounter += 1
-  } else {
-    drawScanLine(shiftY)
+  // As soon as the bottom text is out of frame, reset it back to the
+  // top behind the other text objects.
+  const lowestObj = textObjs[0]
+  if (lowestObj.minY > height) {
+    const progress = textObjs[textObjs.length - 1].progress - spacing
+    lowestObj.resetSlitScan(progress)
+    textObjs.shift()
+    textObjs.push(lowestObj)
   }
 
-  if (y > yMax || stallResetCounter > stallResetTime) {
-    resetSlitScan()
+  if (DEBUG) {
+    drawScanLine()
   }
 }
