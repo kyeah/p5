@@ -1,5 +1,6 @@
 const fontPts = ({ font, text, x, y, fontSize, maxWidth, maxHeight, options }) => {
-  const bounds = font.textBounds(text, x, y, fontSize, options);
+  const pts = font.textToPoints(text, x, y, fontSize, options)
+  const bounds = font.textBounds(text, x, y, fontSize, options)
 
   let ratioWidth, ratioHeight
 
