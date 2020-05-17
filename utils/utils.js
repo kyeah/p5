@@ -1,4 +1,4 @@
-const fontPts = ({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, options }) => {
+function fontPts({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, options }) {
   const pts = font.textToPoints(text, x, y, fontSize, options)
   const bounds = font.textBounds(text, x, y, fontSize, options)
 
