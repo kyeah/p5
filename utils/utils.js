@@ -1,4 +1,4 @@
-const fontPts = ({ font, text, x, y, fontSize, maxWidth, maxHeight, options }) => {
+const fontPts = ({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, options }) => {
   const pts = font.textToPoints(text, x, y, fontSize, options)
   const bounds = font.textBounds(text, x, y, fontSize, options)
 
@@ -6,7 +6,7 @@ const fontPts = ({ font, text, x, y, fontSize, maxWidth, maxHeight, options }) =
 
   if (options.fill) {
     ratioWidth = maxWidth || width
-    ratioHeight = maxHeight || width
+    ratioHeight = maxHeight || height
   } else {
     const textRatio = bounds.w / bounds.h
     const canvasRatio = (maxWidth || width) / (maxHeight || height)
