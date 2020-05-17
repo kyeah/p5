@@ -1,4 +1,4 @@
-function fontPts({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, options }) {
+const fontPts = ({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, options }) => {
   const pts = font.textToPoints(text, x, y, fontSize, options)
   const bounds = font.textBounds(text, x, y, fontSize, options)
 
@@ -21,8 +21,10 @@ function fontPts({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, opti
   }
 
   return pts.map(pt => {
-      x: (-bounds.x* ratioWidth / bounds.w) + pt.x * ratioWidth / bounds.w,
-      y: (-bounds.y* ratioHeight / bounds.h) + pt.y * ratioHeight / bounds.h
+    return {
+      x: (-bounds.x * ratioWidth / bounds.w) + pt.x * ratioWidth / bounds.w,
+      y: (-bounds.y * ratioHeight / bounds.h) + pt.y * ratioHeight / bounds.h
+    }
   })
 }
 
