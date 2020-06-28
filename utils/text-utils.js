@@ -71,6 +71,9 @@ const getCharacterBoundaries = ({ text, fontSize, options }) => {
 }
 
 const normalizePointAngle = (point, { originX, originY }) => {
+  originX = originX || width/2
+  originY = originY || height/2
+
   let originVector = createVector(originX - point.x, originY - point.y)
   let rotationVector = createVector(
     cos(radians(point.alpha)),
@@ -78,7 +81,7 @@ const normalizePointAngle = (point, { originX, originY }) => {
   )
 
   let alpha
-  if (abs(origin.angleBetween(rVec)) > radians(90)) {
+  if (abs(originVector.angleBetween(rotationVector)) > radians(90)) {
     alpha = (point.alpha + 180) % 360
   } else {
     alpha = (point.alpha % 360)
