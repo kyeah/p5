@@ -120,3 +120,22 @@ const gridSteps = (grid, { stepLength, colIdx, rowIdx }) => {
 
   return [xStep, yStep]
 }
+
+const normalizeTextToPointAngles = (points, { originX, originY }) => {
+  points.map((pt) => {
+    let originVector = createVector(originX - pt.x, originY - pt.y)
+    let rotationVector = createVector(
+      cos(radians(pt.alpha)), 
+      sin(radians(pt.alpha))
+    )
+
+    let alpha
+    if (abs(origin.angleBetween(rVec)) > radians(90)) {
+      alpha = (pt.alpha + 180) % 360
+    } else {
+      alpha = (pt.alpha % 360)
+    }
+
+    { ...pt, alpha }
+  }
+}
