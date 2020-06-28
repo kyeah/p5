@@ -70,7 +70,7 @@ const getCharacterBoundaries = ({ text, fontSize, options }) => {
   }, [])
 }
 
-const normalizePointAngle = (point, { originX, originY }) => {
+const normalizePointAngle = (point, { originX, originY } = {}) => {
   originX = originX || width/2
   originY = originY || height/2
 
