@@ -15,7 +15,7 @@ const PaperUtils = {
     }
 
     endShape()
-  }
+  },
 
   // Draw a paper.js path using bezier curves.
   drawPath: (path) => {
@@ -35,7 +35,7 @@ const PaperUtils = {
       path.segments[path.segments.length - 1],
       path.segments[0]
     )
-  }
+  },
 
   // Adds a curve from one segment anchor point to the next
   // using the in/out handles.
