@@ -2,14 +2,14 @@ const PaperUtils = {
   drawShape: (path) => {
     beginShape()
     if (!path.children) {
-      drawPath(path)
+      PaperUtils.drawPath(path)
     } else {
-      drawPath(path.children[0])
+      PaperUtils.drawPath(path.children[0])
 
       // Support only nonzero fillRule for now, sorry folks
       for (let subpath of path.children.slice(1)) {
         beginContour()
-        drawPath(subpath)
+        PaperUtils.drawPath(subpath)
         endContour()
       }
     }
@@ -25,13 +25,13 @@ const PaperUtils = {
     vertex(prevSegment.point.x, prevSegment.point.y)
 
     for (let segment of path.segments.slice(1)) {
-      addCurve(prevSegment, segment)
+      PaperUtils.addCurve(prevSegment, segment)
       prevSegment = segment
     }
 
     // Loop back around to the first point and
     // add the closing curve.
-    addCurve(
+    PaperUtils.addCurve(
       path.segments[path.segments.length - 1],
       path.segments[0]
     )
