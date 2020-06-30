@@ -95,8 +95,12 @@ const centeredTextToPoints = (font, txt, x, y, fontSize, options) => {
   let bounds = font.textBounds(txt, x, y, fontSize)
 
   for (let pt of points) {
-    pt.x = pt.x - bounds.x - bounds.w/2,
+    pt.x = pt.x - bounds.x - bounds.w/2
     pt.y = pt.y - bounds.y - bounds.h/2
+
+    if (options.normalizeAngle) {
+      pt.alpha = normalizePointAngle(pt)
+    }
   }
 
   return points
