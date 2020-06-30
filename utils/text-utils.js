@@ -89,3 +89,15 @@ const normalizePointAngle = (point, { originX, originY } = {}) => {
 
   return alpha
 }
+
+const centeredTextToPoints = (font, txt, x, y, fontSize, options) => {
+  let points = font.textToPoints(txt, 0, 0, fontSize, options)
+  let bounds = font.textBounds(txt, x, y, fontSize)
+
+  for (let pt of points) {
+    pt.x = pt.x - bounds.x - bounds.w/2,
+    pt.y = pt.y - bounds.y - bounds.h/2
+  }
+
+  return points
+}
