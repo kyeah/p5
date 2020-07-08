@@ -1,3 +1,8 @@
+// Utilities for working with text/fonts in p5.js.
+//
+// Include the latest version in your sketch via index.html:
+// <script src="https://cdn.jsdelivr.net/gh/kyeah/p5@master/utils/text-utils.js"></script>
+//
 const fontPts = ({ font, text, x = 0, y = 0, fontSize, maxWidth, maxHeight, options }) => {
   const pts = font.textToPoints(text, x, y, fontSize, options)
   const bounds = font.textBounds(text, x, y, fontSize, options)
