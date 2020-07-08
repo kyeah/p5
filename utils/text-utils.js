@@ -58,7 +58,25 @@ const textHeight = ({ text, maxWidth }) => {
 // boundary will be '536' and we'll end the 'G' shape there.
 //
 // Otherwise, every letter will be connected in one big ol' shape.
-const getCharacterBoundaries = ({ text, fontSize, options }) => {
+//
+// Usage:
+//   let points = font.textToPoints("word", x, y, 36)
+//   let boundaries = getCharacterBoundaries({ font: font, text: "word", fontSize: 36 })
+//
+//   for (int i = 0; i < points.length; i++) {
+//     if (boundaries.includes(i)) {
+//       // New letter! do something.
+//     }
+//   }
+//
+// Returns:
+//   An array of boundary indexes, one for each character. For example,
+//   with three letters, the boundaries might be:
+//   
+//   [536, 1001, 1210]
+//   ( new letters after 536, 1001, and 1210 points )
+//
+const getCharacterBoundaries = ({ font, text, fontSize, options }) => {
   return text.split('').reduce((arr, char) => {
     const prevBoundary = arr[arr.length - 1] || 0
 
