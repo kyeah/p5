@@ -128,3 +128,38 @@ const centeredTextToPoints = (font, txt, x, y, fontSize, options) => {
 
   return points
 }
+
+// Requires opentype.js and variableFont.js
+// Returns the font and varfont objects, if it succeeds.
+function loadVariableFontMetadata(file) {
+  let reader = new FileReader();
+
+  return new Promise((resolve, reject) => {
+    reader.onload = function() {
+      let font = opentype.parse(this.result);
+      let varFont = new VariableFont(font);
+      resolve([font, varFont]);
+    }
+
+    reader.onerror = reject;
+    reader.onabort = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Returns the font-face filename
+function loadFontInCSS(file) {
+  const filename = file.name.replace(/[^A-Za-z\-\_\ ]/g, "")
+
+  let newStyle = document.createElement('style');
+  let textChild = document.createTextNode("\
+    @font-face {\
+        font-family: " + filename + ";\
+        src: url('" + file.data + "');\
+    }\
+  ")
+
+  newStyle.appendChild(textChild);
+  document.head.appendChild(newStyle);
+  return filename;
+}
