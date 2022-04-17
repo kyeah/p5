@@ -131,7 +131,7 @@ const centeredTextToPoints = (font, txt, x, y, fontSize, options) => {
 
 // Requires opentype.js and variableFont.js
 // Returns the font and varfont objects, if it succeeds.
-function loadVariableFontMetadata(file) {
+const loadVariableFontMetadata = (file) => {
   let reader = new FileReader();
 
   return new Promise((resolve, reject) => {
@@ -148,7 +148,7 @@ function loadVariableFontMetadata(file) {
 }
 
 // Returns the font-face filename
-function loadFontInCSS(file) {
+const loadFontInCSS = (file) => {
   const filename = file.name.replace(/[^A-Za-z\-\_\ ]/g, "")
 
   let newStyle = document.createElement('style');
