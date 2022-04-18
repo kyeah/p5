@@ -136,9 +136,13 @@ const loadVariableFontMetadata = (file) => {
 
   return new Promise((resolve, reject) => {
     reader.onload = function() {
-      let font = opentype.parse(this.result);
-      let varFont = new VariableFont(font);
-      resolve([font, varFont]);
+      try {
+        let font = opentype.parse(this.result);
+        let varFont = new VariableFont(font);
+        resolve([font, varFont]);
+      } catch (e) {
+        reject(e);
+      }
     }
 
     reader.onerror = reject;
