@@ -159,7 +159,7 @@ const loadFontInCSS = (file) => {
   let textChild = document.createTextNode("\
     @font-face {\
         font-family: " + filename + ";\
-        src: url('" + file.arrayBuffer() + "');\
+        src: url('" + file.data + "');\
     }\
   ")
 
