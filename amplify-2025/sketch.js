@@ -1,7 +1,8 @@
 let font;
 let fontSize = 400;
-let text = "AMPLIFY";
+let txt = "AMPLIFY";
 let linedWord;
+let dottedWord;
 
 let bgImg;
 
@@ -9,10 +10,6 @@ let bgImg;
 let maxLength = 30;
 let speed = 0.05;
 let counterspeed = 0.01;
-
-let xOff = 0;
-let bgCanvas;
-
 let targetCounter = 0;
 
 let c = 1000;
@@ -36,13 +33,9 @@ function setup() {
   createCanvas(cWidth, cHeight);
   stroke(255);
   strokeWeight(1);
-
-  // Load a piece of text as points
-  xOff = random(100);
-
-  bgCanvas = createGraphics(width, height, WEBGL);
   bgImg.resize(width, height);
-  linedWord = new LinedWord(font, text, fontSize, 0, 0);
+  linedWord = new LinedWord(font, txt, fontSize, 0, 0);
+  dottedWord = new DottedWord(font, txt, fontSize, 0, 0);
   frameRate(60);
 }
 
@@ -58,8 +51,6 @@ function draw() {
   image(bgImg, 0, 0);
   translate(width / 2, height / 2);
   stroke(255);
-
-  xOff += 0.02;
 
   let maxAdjustment = Math.max(0, 50 * sin(0.01 * time));
 
@@ -81,5 +72,15 @@ function draw() {
 
   fill(v, 255, 255, 0.2);
   colorMode(RGB);
+  textFont(font);
+  textSize(fontSize);
+
+  // fill("red");
+  // let clr = color(180, v, 255);
+  // clr.setAlpha(map(time, 0, 100, 0, 255));
+  // fill(clr);
+  // textAlign(CENTER, CENTER);
+  // text(txt, 0, -57);
   linedWord.render(maxAdjustment, v, v2);
+  dottedWord.render();
 }

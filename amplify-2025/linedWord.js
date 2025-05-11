@@ -34,7 +34,8 @@ class LinedWord {
     // let newHistObj = [];
     for (let i = 0; i < this.points.length; i++) {
       let pt = this.points[i];
-      let clr = color(map(i, 0, this.points.length - 1, 0, 180), v, 255);
+      //   let clr = color(map(i, 0, this.points.length - 1, 0, 180), v, 255);
+      let clr = color(180, v, 255);
       clr.setAlpha(255);
       stroke(clr);
       let adjustedPt = {
@@ -61,7 +62,7 @@ class LinedWord {
 
       //   newHistObj.push(adjustedPt);
     }
-    endShape();
+    // endShape();
 
     // this.history.push(newHistObj);
     // if (this.history.length > 10) {

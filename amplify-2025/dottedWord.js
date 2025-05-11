@@ -1,0 +1,165 @@
+class DottedWord {
+  constructor(font, text, fontSize, x, y) {
+    this.font = font;
+    this.text = text;
+    this.x = x;
+    this.y = y;
+    this.fontSize = fontSize;
+    this.sampleFactor = 0.4;
+    this.points = centeredTextToPoints(
+      font,
+      text,
+      x - width / 2,
+      y - height / 2,
+      fontSize,
+      {
+        sampleFactor: this.sampleFactor,
+      }
+    );
+
+    this.boundaries = getCharacterBoundaries({
+      font,
+      text,
+      fontSize,
+      options: {
+        sampleFactor: this.sampleFactor,
+      },
+    });
+
+    this.drawReference();
+    this.setupDots();
+  }
+
+  setupDots() {
+    this.dots = [];
+    const initSize = min(width, height);
+    const initX = width;
+    const initY = height;
+
+    function getPixel(layer, x, y) {
+      return layer.pixels[
+        layer.pixelDensity() * 4 * (layer.width * Math.floor(y) + Math.floor(x))
+      ];
+    }
+
+    function getDest(gridPts) {
+      let idx = int(random(gridPts.length - 1));
+      let pt = gridPts.splice(idx, 1)[0];
+      return {
+        x: pt.x - initX / 2,
+        y: pt.y - initY / 2,
+      };
+    }
+
+    const bounds = this.font.textBounds(this.text, 0, 0, this.fontSize);
+
+    const textBounds = {
+      minX: width / 2 - bounds.w / 2,
+      minY: height / 2 - bounds.h / 2,
+      maxX: width / 2 + bounds.w / 2,
+      maxY: height / 2 + bounds.h / 2,
+    };
+
+    let step = initSize / 140;
+    let pointRadius = initSize / 400;
+    let offset = 2;
+    let gridPts = [];
+
+    for (
+      let y = textBounds.minY + step;
+      y <= textBounds.maxY - step;
+      y += step
+    ) {
+      offset = offset === 2 ? 0 : 2;
+
+      let firstX, lastX;
+
+      for (
+        let x = textBounds.minX + pointRadius;
+        x <= textBounds.maxX - pointRadius;
+        x += 1
+      ) {
+        if (!firstX && getPixel(this.bgCanvas, x, y) !== 0) {
+          firstX = x;
+        } else if (firstX && getPixel(this.bgCanvas, x, y) !== 0) {
+          lastX = x;
+        }
+      }
+
+      let numPoints = (lastX - firstX) / step;
+
+      // This should just be numPoints but it's broken
+      // so hack it with 3*
+      for (let i = 0; i < numPoints; i++) {
+        let x = firstX + pointRadius + i * step;
+        let col = getPixel(this.bgCanvas, x, y);
+        let lastColor = getPixel(this.bgCanvas, x - step, y);
+        let nextcol = getPixel(this.bgCanvas, x + step, y);
+
+        let lastRowCol = getPixel(this.bgCanvas, x, y - step);
+        let nextRowCol = getPixel(this.bgCanvas, x, y + step);
+
+        if (col > 10) {
+          let nextX = x;
+          let nextY = y;
+          if (lastColor === col && nextcol === col) {
+            nextX += random(-pointRadius, pointRadius);
+          }
+
+          if (lastRowCol === col && nextRowCol === col) {
+            nextY += random(-pointRadius, pointRadius);
+          }
+          gridPts.push({
+            x: nextX,
+            y: nextY,
+          });
+        }
+      }
+    }
+
+    while (gridPts.length > 0) {
+      let x = random(width) - initX / 2;
+      let y = random(height) - initY / 2;
+      let dest = getDest(gridPts);
+      this.dots.push(
+        new FreePoint(x, y, random(pointRadius, pointRadius * 2), dest)
+      );
+    }
+    console.log(this.dots.length);
+    console.log(this.dots);
+  }
+
+  drawReference() {
+    this.bgCanvas = createGraphics(width, height);
+    this.bgCanvas.pixelDensity(1);
+
+    let clr = color(180, 255, 255);
+    clr.setAlpha(255);
+    this.bgCanvas.fill(clr);
+    this.bgCanvas.noStroke();
+
+    this.bgCanvas.beginShape();
+    let startIdx = 0;
+    for (let i = 0; i < this.points.length; i++) {
+      if (this.boundaries.includes(i)) {
+        this.bgCanvas.vertex(this.points[startIdx].x, this.points[startIdx].y);
+        this.bgCanvas.endShape();
+        this.bgCanvas.beginShape();
+        startIdx = i;
+      }
+      this.bgCanvas.vertex(this.points[i].x, this.points[i].y);
+    }
+
+    this.bgCanvas.vertex(this.points[startIdx].x, this.points[startIdx].y);
+    this.bgCanvas.endShape(CLOSE);
+    this.bgCanvas.loadPixels();
+  }
+
+  render() {
+    // image(this.bgCanvas, -width / 2, -height / 2);
+    for (const dot of this.dots) {
+      dot.draw();
+      dot.update();
+    }
+  }
+}
