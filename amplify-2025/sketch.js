@@ -1,6 +1,6 @@
 let font;
-let vmargin = 200;
-let fontSize = 300;
+let vmargin = 300;
+let fontSize = PORTRAIT_MODE ? 250 : 350;
 let txt = "AMPLIFY";
 
 let linedWords = [];
@@ -132,5 +132,6 @@ function draw() {
     noLoop();
   } else {
     // save(`amplify-2025-landscape/frames/${frameCount}.png`);
+    // save(`amplify-2025-portrait/frames/${frameCount}.png`);
   }
 }
