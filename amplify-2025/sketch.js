@@ -40,15 +40,12 @@ function setup() {
 }
 
 function draw() {
-  if (frameCount === 1500) {
-  }
-
   const time = frameCount;
 
   colorMode(RGB);
   // background("#121212");
   clear();
-  image(bgImg, 0, 0);
+  // image(bgImg, 0, 0);
   translate(width / 2, height / 2);
   stroke(255);
 
@@ -84,4 +81,10 @@ function draw() {
   linedWord.render(maxAdjustment, v, v2);
   // text(txt, 0, -57);
   dottedWord.render(v, time);
+
+  if (frameCount >= 451) {
+    noLoop();
+  } else {
+    save(`amplify-2025/frames/${frameCount}.png`);
+  }
 }
