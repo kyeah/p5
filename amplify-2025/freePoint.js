@@ -49,21 +49,42 @@ class FreePoint {
       //   { sframe: 310, eframe: 440 },
       { sframe: 100, eframe: 230 },
       { sframe: 290, eframe: 420 },
+      { sframe: 480, eframe: 610 },
+      { sframe: 670, eframe: 800 },
     ];
 
-    const currentFrame = frames.find(
+    let vlen = 200;
+    let vwait = 60;
+    const portraitFrames = [
+      { sframe: 100, eframe: 300 },
+      { sframe: 360, eframe: 560 },
+      { sframe: 620, eframe: 820 },
+    ];
+
+    const currentFrame = (PORTRAIT_MODE ? portraitFrames : frames).find(
       (f) => frameCount >= f.sframe && frameCount <= f.eframe
     );
 
     if (currentFrame != null) {
-      my = 0;
-      mx = map(
-        frameCount,
-        currentFrame.sframe,
-        currentFrame.eframe,
-        -width / 2,
-        width / 2
-      );
+      if (PORTRAIT_MODE) {
+        mx = 0;
+        my = map(
+          frameCount,
+          currentFrame.sframe,
+          currentFrame.eframe,
+          -height / 2,
+          height / 2
+        );
+      } else {
+        my = 0;
+        mx = map(
+          frameCount,
+          currentFrame.sframe,
+          currentFrame.eframe,
+          -width / 2,
+          width / 2
+        );
+      }
       md = dist(this.originalDest.x, this.originalDest.y, mx, my);
     }
 
@@ -91,8 +112,8 @@ class FreePoint {
         this.vx = dx / 20;
         this.vy = dy / 20;
       } else {
-        this.vx = dx / 5;
-        this.vy = dy / 5;
+        this.vx = dx / 12;
+        this.vy = dy / 12;
       }
     } else if (md != null) {
       this.vx = dx / 30;
@@ -106,8 +127,8 @@ class FreePoint {
         this.vx = dx / 20;
         this.vy = dy / 20;
       } else {
-        this.vx = dx / 10;
-        this.vy = dy / 10;
+        this.vx = dx / 12;
+        this.vy = dy / 12;
       }
       this.wander();
     }

@@ -68,20 +68,12 @@ class DottedWord {
 
     this.gridPts = [];
 
-    for (
-      let y = textBounds.minY + step;
-      y <= textBounds.maxY - step;
-      y += step
-    ) {
+    for (let y = 0; y <= height; y += step) {
       offset = offset === 2 ? 0 : 2;
 
       let firstX, lastX;
 
-      for (
-        let x = textBounds.minX + pointRadius;
-        x <= textBounds.maxX - pointRadius;
-        x += 1
-      ) {
+      for (let x = 0; x <= width; x += 1) {
         if (!firstX && getPixel(this.bgCanvas, x, y) !== 0) {
           firstX = x;
         } else if (firstX && getPixel(this.bgCanvas, x, y) !== 0) {

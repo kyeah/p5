@@ -1,8 +1,10 @@
 let font;
-let fontSize = 400;
+let vmargin = 200;
+let fontSize = 300;
 let txt = "AMPLIFY";
-let linedWord;
-let dottedWord;
+
+let linedWords = [];
+let dottedWords = [];
 
 let bgImg;
 
@@ -17,8 +19,8 @@ let counter = c;
 
 let totalFrameCount = 450;
 
-let cWidth = 1920;
-let cHeight = 1080;
+let cWidth = PORTRAIT_MODE ? 1080 : 1920;
+let cHeight = PORTRAIT_MODE ? 1980 : 1080;
 
 function t() {
   return map(frameCount, 0, totalFrameCount, 0, 1500);
@@ -34,8 +36,46 @@ function setup() {
   stroke(255);
   strokeWeight(1);
   bgImg.resize(width, height);
-  linedWord = new LinedWord(font, txt, fontSize, 0, 0);
-  dottedWord = new DottedWord(font, txt, fontSize, 0, 0);
+
+  if (!PORTRAIT_MODE) {
+    linedWords.push(new LinedWord(font, txt, fontSize, 0, 0));
+    dottedWords.push(new DottedWord(font, txt, fontSize, 0, 0));
+  } else {
+    const chars = txt.split("");
+
+    for (let i = 0; i < chars.length; i++) {
+      linedWords.push(
+        new LinedWord(
+          font,
+          chars[i],
+          fontSize,
+          0,
+          map(
+            i,
+            0,
+            chars.length - 1,
+            height / 2 - vmargin,
+            -height / 2 + vmargin
+          )
+        )
+      );
+      dottedWords.push(
+        new DottedWord(
+          font,
+          chars[i],
+          fontSize,
+          0,
+          map(
+            i,
+            0,
+            chars.length - 1,
+            height / 2 - vmargin,
+            -height / 2 + vmargin
+          )
+        )
+      );
+    }
+  }
   frameRate(60);
 }
 
@@ -78,13 +118,19 @@ function draw() {
   clr.setAlpha(map(time, 60, 100, 0, 255, true));
   fill(clr);
   textAlign(CENTER, CENTER);
-  linedWord.render(maxAdjustment, v, v2);
-  // text(txt, 0, -57);
-  dottedWord.render(v, time);
 
-  if (frameCount >= 451) {
+  for (const linedWord of linedWords) {
+    linedWord.render(maxAdjustment, v, v2);
+  }
+
+  for (const dottedWord of dottedWords) {
+    dottedWord.render(v, time);
+  }
+
+  // text(txt, 0, -57);
+  if (frameCount >= 901) {
     noLoop();
   } else {
-    save(`amplify-2025/frames/${frameCount}.png`);
+    // save(`amplify-2025-landscape/frames/${frameCount}.png`);
   }
 }

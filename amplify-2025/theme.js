@@ -1,3 +1,5 @@
+const PORTRAIT_MODE = true;
+
 function getColors() {
   const color1 = color(0, 255, 255);
   const color2 = color(150, 255, 150);
