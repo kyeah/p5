@@ -32,9 +32,7 @@ class FreePoint {
   }
 
   draw(v, time) {
-    let clr = color(180, v, 255);
-    // clr.setAlpha(map(time, 80, 100, 255, 0, true));
-    fill(clr);
+    setPointColor(v);
     // fill(this.color);
     noStroke();
     var pos = this.body.position;
@@ -44,47 +42,78 @@ class FreePoint {
   update() {
     let mx = null;
     let my = null;
-    let d = null;
+    let md = null;
 
-    if (frameCount >= 120 && frameCount <= 190) {
+    const frames = [
+      //   { sframe: 120, eframe: 250 },
+      //   { sframe: 310, eframe: 440 },
+      { sframe: 100, eframe: 230 },
+      { sframe: 290, eframe: 420 },
+    ];
+
+    const currentFrame = frames.find(
+      (f) => frameCount >= f.sframe && frameCount <= f.eframe
+    );
+
+    if (currentFrame != null) {
       my = 0;
-      mx = map(frameCount, 120, 190, -width / 2, width / 2);
-
-      d = dist(this.dest.x, this.dest.y, mx, my);
+      mx = map(
+        frameCount,
+        currentFrame.sframe,
+        currentFrame.eframe,
+        -width / 2,
+        width / 2
+      );
+      md = dist(this.originalDest.x, this.originalDest.y, mx, my);
     }
 
-    if (d != null && d <= height / 5) {
-      let maxm = height / 5;
-      let v = createVector(
-        this.body.position.x - mx,
-        this.body.position.y - my
-      );
-      let m = map(v.mag(), 0, maxm, 20, 0);
-      v.setMag(m);
-      this.vx = v.x;
-      this.vy = v.y;
-    } else {
-      let dx = this.dest.x - this.body.position.x;
-      let dy = this.dest.y - this.body.position.y;
-      const d = dist(
-        this.body.position.x,
-        this.body.position.y,
-        this.dest.x,
-        this.dest.y
-      );
+    let dx = this.dest.x - this.body.position.x;
+    let dy = this.dest.y - this.body.position.y;
+    const d = dist(
+      this.body.position.x,
+      this.body.position.y,
+      this.dest.x,
+      this.dest.y
+    );
+
+    if (md != null && md <= height / 5 && !this.isReset) {
+      const disburseScale = 500;
+      this.dest.x += random(-disburseScale, disburseScale);
+      this.dest.y += random(-disburseScale, disburseScale);
+      this.vx = dx / 30;
+      this.vy = dy / 30;
+      this.isReset = true;
+    } else if (md != null && md > height / 5 && this.isReset) {
+      this.dest.x = this.originalDest.x;
+      this.dest.y = this.originalDest.y;
 
       if (d < 10) {
         this.vx = dx / 20;
         this.vy = dy / 20;
       } else {
-        this.vx = dx / 15;
-        this.vy = dy / 15;
+        this.vx = dx / 5;
+        this.vy = dy / 5;
       }
+    } else if (md != null) {
+      this.vx = dx / 30;
+      this.vy = dy / 30;
+    } else if (this.isReset) {
+      this.dest.x = this.originalDest.x;
+      this.dest.y = this.originalDest.y;
+      this.isReset = false;
+    } else {
+      if (d < 10) {
+        this.vx = dx / 20;
+        this.vy = dy / 20;
+      } else {
+        this.vx = dx / 10;
+        this.vy = dy / 10;
+      }
+      this.wander();
     }
 
     this.body.position.x += this.vx;
     this.body.position.y += this.vy;
-    this.wander();
   }
 
   wander() {

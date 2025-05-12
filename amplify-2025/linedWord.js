@@ -36,14 +36,7 @@ class LinedWord {
       let pt = this.points[i];
       //   let clr = color(map(i, 0, this.points.length - 1, 0, 180), v, 255);
       // let clr = color(180, v, 255);
-      let clr = color(
-        180,
-        int(255 / 2 + (255 / 2) * sin(0.01 * (frameCount + 50))),
-        255
-      );
-
-      clr.setAlpha(map(frameCount, 60, 120, 0, 255, true));
-      stroke(clr);
+      setLineColor();
 
       let adjustedPt = {
         x:
