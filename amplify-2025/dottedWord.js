@@ -30,6 +30,15 @@ class DottedWord {
     this.setupDots();
   }
 
+  getDest() {
+    let idx = int(random(this.gridPts.length - 1));
+    let pt = this.gridPts.splice(idx, 1)[0];
+    return {
+      x: pt.x - width / 2,
+      y: pt.y - height / 2,
+    };
+  }
+
   setupDots() {
     this.dots = [];
     const initSize = min(width, height);
@@ -42,15 +51,6 @@ class DottedWord {
       ];
     }
 
-    function getDest(gridPts) {
-      let idx = int(random(gridPts.length - 1));
-      let pt = gridPts.splice(idx, 1)[0];
-      return {
-        x: pt.x - initX / 2,
-        y: pt.y - initY / 2,
-      };
-    }
-
     const bounds = this.font.textBounds(this.text, 0, 0, this.fontSize);
 
     const textBounds = {
@@ -60,10 +60,13 @@ class DottedWord {
       maxY: height / 2 + bounds.h / 2,
     };
 
-    let step = initSize / 140;
-    let pointRadius = initSize / 400;
+    this.textBounds = textBounds;
+
+    let step = initSize / 200;
+    let pointRadius = initSize / 300;
     let offset = 2;
-    let gridPts = [];
+
+    this.gridPts = [];
 
     for (
       let y = textBounds.minY + step;
@@ -109,7 +112,7 @@ class DottedWord {
           if (lastRowCol === col && nextRowCol === col) {
             nextY += random(-pointRadius, pointRadius);
           }
-          gridPts.push({
+          this.gridPts.push({
             x: nextX,
             y: nextY,
           });
@@ -117,16 +120,29 @@ class DottedWord {
       }
     }
 
-    while (gridPts.length > 0) {
+    let gridPtsCopy = JSON.parse(JSON.stringify(this.gridPts));
+    while (this.gridPts.length > 0) {
       let x = random(width) - initX / 2;
       let y = random(height) - initY / 2;
-      let dest = getDest(gridPts);
+      let dest = this.getDest();
       this.dots.push(
         new FreePoint(x, y, random(pointRadius, pointRadius * 2), dest)
       );
     }
+    this.gridPts = gridPtsCopy;
     console.log(this.dots.length);
     console.log(this.dots);
+  }
+
+  shuffle() {
+    let gridPtsCopy = JSON.parse(JSON.stringify(this.gridPts));
+    for (let pt of this.dots) {
+      let x = pt.body.position.x;
+      let y = pt.body.position.y;
+      let dest = this.getDest();
+      pt.dest = dest;
+    }
+    this.gridPts = gridPtsCopy;
   }
 
   drawReference() {
@@ -155,11 +171,24 @@ class DottedWord {
     this.bgCanvas.loadPixels();
   }
 
-  render() {
+  render(v, time) {
     // image(this.bgCanvas, -width / 2, -height / 2);
     for (const dot of this.dots) {
-      dot.draw();
+      dot.draw(v, time);
       dot.update();
     }
+
+    // if (frameCount >= 120 && frameCount <= 150) {
+    //   const minBound = map(frameCount, 120, 150, this.textBounds.minX, this.textBounds.maxX);
+    //   const maxBound = map(frameCount + 1, 120, 150, this.textBounds.minX, this.textBounds.maxX);
+    //   if (dot.dest.x >= minBound && dot.dest.x <= maxBound) {
+    //     dot.dest.x
+    //   }
+    // }
+    // }
+
+    // if (frameCount % 100 == 0) {
+    // this.shuffle();
+    // }
   }
 }

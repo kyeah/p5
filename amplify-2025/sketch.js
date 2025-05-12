@@ -56,7 +56,7 @@ function draw() {
 
   noStroke();
 
-  let v = int(50 + 255 / 2 + (255 / 2) * sin(0.01 * time));
+  let v = int(255 / 2 + (255 / 2) * sin(0.01 * time));
   let v2 = int(counter);
 
   let d = targetCounter - counter;
@@ -75,12 +75,11 @@ function draw() {
   textFont(font);
   textSize(fontSize);
 
-  // fill("red");
-  // let clr = color(180, v, 255);
-  // clr.setAlpha(map(time, 0, 100, 0, 255));
-  // fill(clr);
-  // textAlign(CENTER, CENTER);
-  // text(txt, 0, -57);
+  let clr = color(180, v, 255);
+  clr.setAlpha(map(time, 60, 100, 0, 255, true));
+  fill(clr);
+  textAlign(CENTER, CENTER);
   linedWord.render(maxAdjustment, v, v2);
-  dottedWord.render();
+  // text(txt, 0, -57);
+  dottedWord.render(v, time);
 }
