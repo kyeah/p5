@@ -42,8 +42,9 @@ class LinedWord {
         255
       );
 
-      clr.setAlpha(255);
+      clr.setAlpha(map(frameCount, 60, 120, 0, 255, true));
       stroke(clr);
+
       let adjustedPt = {
         x:
           pt.x +

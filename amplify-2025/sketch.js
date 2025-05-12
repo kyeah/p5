@@ -12,7 +12,7 @@ let speed = 0.05;
 let counterspeed = 0.01;
 let targetCounter = 0;
 
-let c = 1000;
+let c = 0;
 let counter = c;
 
 let totalFrameCount = 450;
@@ -59,15 +59,17 @@ function draw() {
   let v = int(255 / 2 + (255 / 2) * sin(0.01 * time));
   let v2 = int(counter);
 
-  let d = targetCounter - counter;
-  counter += d * counterspeed;
+  if (frameCount >= 70) {
+    let d = targetCounter - counter;
+    counter += d * counterspeed;
+  }
 
   if (targetCounter === 0 && (time === 500 || time === 1250)) {
-    targetCounter = c;
-    counterspeed = 0.006;
+    // targetCounter = c;
+    // counterspeed = 0.006;
   } else if (targetCounter !== 0 && time === 750) {
-    targetCounter = 0;
-    counterspeed = 0.01;
+    // targetCounter = 0;
+    // counterspeed = 0.01;
   }
 
   fill(v, 255, 255, 0.2);
