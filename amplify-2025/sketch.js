@@ -15,6 +15,7 @@ let counterspeed = 0.01;
 let targetCounter = 0;
 
 let c = 0;
+// let c = 400;
 let counter = c;
 
 let totalFrameCount = 450;
@@ -114,11 +115,9 @@ function draw() {
   textFont(font);
   textSize(fontSize);
 
-  let clr = color(180, v, 255);
-  clr.setAlpha(map(time, 60, 100, 0, 255, true));
-  fill(clr);
-  textAlign(CENTER, CENTER);
-
+  // let clr = color(180, v, 255);
+  // clr.setAlpha(map(time, 60, 100, 0, 255, true));
+  // fill(clr);
   for (const linedWord of linedWords) {
     linedWord.render(maxAdjustment, v, v2);
   }
@@ -126,12 +125,19 @@ function draw() {
   for (const dottedWord of dottedWords) {
     dottedWord.render(v, time);
   }
+  // const [color1, color2] = getColors();
+  // const v3 = int(255 / 2 + (255 / 2) * sin(0.01 * (frameCount - 100)));
+  // let clr = lerpColor(color1, color2, map(v3, 0, 255, 0, 1));
+  // clr.setAlpha(map(frameCount, 60, 120, 0, 200, true));
+  // fill(clr);
+  // textAlign(CENTER, CENTER);
 
-  // text(txt, 0, -57);
+  // text(txt, 0, -50);
+
   if (frameCount >= 901) {
     noLoop();
   } else {
-    // save(`amplify-2025-landscape/frames/${frameCount}.png`);
+    save(`amplify-2025-landscape-lg/dotted/frames/${frameCount}.png`);
     // save(`amplify-2025-portrait/frames/${frameCount}.png`);
   }
 }
