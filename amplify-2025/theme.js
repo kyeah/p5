@@ -1,4 +1,5 @@
-const PORTRAIT_MODE = false;
+const PORTRAIT_MODE = true;
+const SCALE = 6;
 
 function getColors() {
   const color1 = color(0, 255, 255);
@@ -20,4 +21,5 @@ function setLineColor() {
   clr.setAlpha(map(frameCount, 60, 120, 0, 100, true));
   //   clr.setAlpha(map(frameCount, 60, 120, 0, 200, true));
   stroke(clr);
+  strokeWeight(1 + SCALE);
 }

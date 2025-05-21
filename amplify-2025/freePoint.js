@@ -53,8 +53,6 @@ class FreePoint {
       { sframe: 670, eframe: 800 },
     ];
 
-    let vlen = 200;
-    let vwait = 60;
     const portraitFrames = [
       { sframe: 100, eframe: 300 },
       { sframe: 360, eframe: 560 },
@@ -98,37 +96,37 @@ class FreePoint {
     );
 
     if (md != null && md <= height / 5 && !this.isReset) {
-      const disburseScale = 500;
+      const disburseScale = 500 * (SCALE / 2);
       this.dest.x += random(-disburseScale, disburseScale);
       this.dest.y += random(-disburseScale, disburseScale);
-      this.vx = dx / 30;
-      this.vy = dy / 30;
+      this.vx = dx / (30 / SCALE);
+      this.vy = dy / (30 / SCALE);
       this.isReset = true;
     } else if (md != null && md > height / 5 && this.isReset) {
       this.dest.x = this.originalDest.x;
       this.dest.y = this.originalDest.y;
 
-      if (d < 10) {
-        this.vx = dx / 20;
-        this.vy = dy / 20;
+      if (d < 10 * SCALE) {
+        this.vx = dx / (20 / SCALE);
+        this.vy = dy / (20 / SCALE);
       } else {
-        this.vx = dx / 12;
-        this.vy = dy / 12;
+        this.vx = dx / (12 / SCALE);
+        this.vy = dy / (12 / SCALE);
       }
     } else if (md != null) {
-      this.vx = dx / 30;
-      this.vy = dy / 30;
+      this.vx = dx / (30 / SCALE);
+      this.vy = dy / (30 / SCALE);
     } else if (this.isReset) {
       this.dest.x = this.originalDest.x;
       this.dest.y = this.originalDest.y;
       this.isReset = false;
     } else {
-      if (d < 10) {
-        this.vx = dx / 20;
-        this.vy = dy / 20;
+      if (d < 10 * SCALE) {
+        this.vx = dx / (20 / SCALE);
+        this.vy = dy / (20 / SCALE);
       } else {
-        this.vx = dx / 12;
-        this.vy = dy / 12;
+        this.vx = dx / (12 / SCALE);
+        this.vy = dy / (12 / SCALE);
       }
       this.wander();
     }
@@ -138,7 +136,7 @@ class FreePoint {
   }
 
   wander() {
-    this.dest.x = this.originalDest.x + random(-5, 5);
-    this.dest.y = this.originalDest.y + random(-5, 5);
+    this.dest.x = this.originalDest.x + random(-5 * SCALE, 5 * SCALE);
+    this.dest.y = this.originalDest.y + random(-5 * SCALE, 5 * SCALE);
   }
 }

@@ -1,6 +1,4 @@
 let font;
-let vmargin = 300;
-let fontSize = PORTRAIT_MODE ? 250 : 350;
 let txt = "AMPLIFY";
 
 let linedWords = [];
@@ -20,8 +18,12 @@ let counter = c;
 
 let totalFrameCount = 450;
 
-let cWidth = PORTRAIT_MODE ? 1080 : 1920;
-let cHeight = PORTRAIT_MODE ? 1980 : 1080;
+// let cWidth = PORTRAIT_MODE ? 1080 : 1920;
+// let cHeight = PORTRAIT_MODE ? 1980 : 1080;
+let vmargin = SCALE * 300;
+let fontSize = SCALE * (PORTRAIT_MODE ? 250 : 350);
+let cWidth = SCALE * (PORTRAIT_MODE ? 1080 : 1920);
+let cHeight = SCALE * (PORTRAIT_MODE ? 1980 : 1080);
 
 function t() {
   return map(frameCount, 0, totalFrameCount, 0, 1500);
@@ -90,7 +92,7 @@ function draw() {
   translate(width / 2, height / 2);
   stroke(255);
 
-  let maxAdjustment = Math.max(0, 50 * sin(0.01 * time));
+  let maxAdjustment = Math.max(0, SCALE * 50 * sin(0.01 * time));
 
   noStroke();
 
@@ -134,10 +136,14 @@ function draw() {
 
   // text(txt, 0, -50);
 
+  const framesToSave = PORTRAIT ? [95, 245, 295, 310] : [105, 245, 254, 296];
+
   if (frameCount >= 901) {
     noLoop();
   } else {
-    save(`amplify-2025-landscape-lg/dotted/frames/${frameCount}.png`);
-    // save(`amplify-2025-portrait/frames/${frameCount}.png`);
+    if (framesToSave.includes(frameCount)) {
+      // save(`amplify-2025-landscape-lg/dotted/frames/${frameCount}.png`);
+      save(`amplify-2025-portrait-lg/frames/${frameCount}.png`);
+    }
   }
 }

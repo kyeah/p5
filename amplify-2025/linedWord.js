@@ -7,7 +7,7 @@ class LinedWord {
     this.fontSize = fontSize;
     this.sampleFactor = 0.4;
     this.points = centeredTextToPoints(font, text, x, y, fontSize, {
-      sampleFactor: this.sampleFactor,
+      sampleFactor: this.sampleFactor / SCALE,
     });
 
     this.boundaries = getCharacterBoundaries({
@@ -43,7 +43,9 @@ class LinedWord {
           pt.x +
           min(
             maxAdjustment,
-            50 * sin(0.01 * pt.y + 0.05 * frameCount + Math.PI)
+            SCALE *
+              50 *
+              sin(0.01 * (pt.y / SCALE) + 0.05 * frameCount + Math.PI)
           ),
         y: pt.y,
       };
